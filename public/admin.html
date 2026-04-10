@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goddy Graphix | Admin Control</title>
+    <link rel="icon" type="image/jpeg" href="favicon.jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0A2540',
+                        secondary: '#F5A623',
+                        accent: '#F8E9D0',
+                        sidebar: '#071A2E',
+                        canvas: '#F4F7FA'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        montserrat: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar-link.active {
+            background: #F5A623;
+            color: #0A2540;
+            font-weight: 700;
+        }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #F5A623; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-canvas font-sans text-primary">
+
+    <!-- Loading Screen -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-primary z-[100] flex flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
+        <h2 class="mt-6 text-white font-montserrat tracking-widest text-xl">GODDY <span class="text-secondary">GRAPHIX</span></h2>
+        <p class="text-gray-400 mt-2 text-sm uppercase tracking-tighter">Initializing Secure Session</p>
+    </div>
+
+    <!-- Login Context -->
+    <div id="loginWrapper" class="hidden fixed inset-0 bg-primary flex items-center justify-center p-4 z-50">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden fade-in">
+            <div class="bg-secondary p-8 text-center">
+                <h1 class="font-montserrat text-2xl text-primary font-extrabold uppercase tracking-tight">Admin <span class="text-white">Access</span></h1>
+                <p class="text-primary/70 text-sm mt-1 font-medium">Goddy Graphix Creative Suite</p>
+            </div>
+            <div class="p-8">
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Username</label>
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="username" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-secondary focus:border-transparent outline-none transition" placeholder="Enter admin ID" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="password" id="password" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-12 focus:ring-2 focus:ring-secondary focus:border-transparent outline-none transition" placeholder="••••••••" required>
+                            <button type="button" id="togglePassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-secondary transition">
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="loginError" class="hidden bg-red-50 text-red-600 text-xs font-bold p-3 rounded-lg border border-red-100 text-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i> Invalid credentials. Access denied.
+                    </div>
+                    <button type="submit" id="loginBtn" class="w-full bg-primary hover:bg-sidebar text-white font-bold py-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 active:scale-95">
+                        Authorize Session
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Layout -->
+    <div id="dashboard" class="hidden min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="w-72 bg-sidebar text-white flex flex-col fixed inset-y-0 left-0 shadow-2xl z-40">
+            <div class="p-8 border-b border-white/5">
+                <h1 class="font-montserrat text-xl font-bold uppercase">Goddy<span class="text-secondary">Graphix</span></h1>
+                <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mt-1">Control Center</p>
+            </div>
+            
+            <nav class="flex-grow p-4 mt-4 space-y-2">
+                <button onclick="switchTab('overview')" id="tab-overview" class="sidebar-link active w-full flex items-center p-4 rounded-xl transition group">
+                    <i class="fas fa-chart-line w-8"></i>
+                    <span class="text-sm font-semibold">Overview</span>
+                </button>
+                <button onclick="switchTab('portfolio')" id="tab-portfolio" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
+                    <i class="fas fa-layer-group w-8"></i>
+                    <span class="text-sm font-semibold">Portfolio</span>
+                </button>
+                <button onclick="switchTab('requests')" id="tab-requests" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
+                    <i class="fas fa-envelope-open-text w-8"></i>
+                    <span class="text-sm font-semibold">Requests</span>
+                </button>
+                <button onclick="switchTab('settings')" id="tab-settings" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
+                    <i class="fas fa-cog w-8"></i>
+                    <span class="text-sm font-semibold">Settings</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-white/5">
+                <a href="index.html" target="_blank" class="w-full flex items-center p-4 text-gray-400 hover:text-secondary transition">
+                    <i class="fas fa-external-link-alt w-8"></i>
+                    <span class="text-xs font-bold uppercase">View Site</span>
+                </a>
+                <button id="logoutBtn" class="w-full flex items-center p-4 text-red-400 hover:bg-red-500/10 rounded-xl transition">
+                    <i class="fas fa-power-off w-8"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow ml-72 p-8">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-10">
+                <div>
+                    <h2 id="pageTitle" class="text-3xl font-extrabold font-montserrat uppercase tracking-tight">Overview</h2>
+                    <p class="text-gray-500 text-sm mt-1">Welcome back, Admin. System is running optimally.</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-gray-400 uppercase">Server Status</p>
+                        <p class="text-xs text-green-500 font-bold flex items-center justify-end">
+                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></span> Operational
+                        </p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Tab: Overview -->
+            <div id="view-overview" class="tab-content fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                    <div class="glass-effect p-8 rounded-3xl shadow-sm border-l-8 border-primary">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Live Portfolio</p>
+                                <h3 id="stat-portfolio" class="text-4xl font-extrabold mt-2">0</h3>
+                            </div>
+                            <div class="bg-primary/5 p-4 rounded-2xl text-primary">
+                                <i class="fas fa-images text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-effect p-8 rounded-3xl shadow-sm border-l-8 border-secondary">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Requests</p>
+                                <h3 id="stat-requests" class="text-4xl font-extrabold mt-2">0</h3>
+                            </div>
+                            <div class="bg-secondary/5 p-4 rounded-2xl text-secondary">
+                                <i class="fas fa-bell text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-effect p-8 rounded-3xl shadow-sm border-l-8 border-blue-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">System Date</p>
+                                <h3 class="text-xl font-extrabold mt-2 uppercase" id="current-date">--/--/--</h3>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-2xl text-blue-500">
+                                <i class="fas fa-calendar-alt text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <h4 class="font-montserrat font-bold uppercase mb-6 flex items-center">
+                            <i class="fas fa-plus-circle mr-2 text-secondary"></i> Quick Upload
+                        </h4>
+                        <form id="quickUploadForm" class="space-y-4">
+                            <input type="text" id="qTitle" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="Project Title" required>
+                            <select id="qCategory" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition">
+                                <option>Brand Identity</option>
+                                <option>Digital Design</option>
+                                <option>Print Materials</option>
+                                <option>Motion Graphics</option>
+                                <option>E-commerce</option>
+                                <option>Illustration</option>
+                            </select>
+                            <div class="relative">
+                                <input type="file" id="qImage" accept="image/*" class="hidden" required>
+                                <label for="qImage" class="flex items-center justify-center w-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 cursor-pointer hover:bg-gray-100 transition group">
+                                    <div class="text-center" id="uploadPlaceholder">
+                                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 group-hover:text-secondary transition mb-2"></i>
+                                        <p class="text-sm text-gray-500 font-medium">Click to select project preview</p>
+                                    </div>
+                                    <div class="hidden text-center" id="uploadPreview">
+                                        <p class="text-xs font-bold text-secondary uppercase mb-2">Image Selected</p>
+                                        <p class="text-sm text-gray-800 font-medium" id="fileNameDisplay"></p>
+                                    </div>
+                                </label>
+                            </div>
+                            <textarea id="qDescription" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="Short description (optional)"></textarea>
+                            <button type="submit" class="w-full bg-secondary text-primary font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition">
+                                Publish to Portfolio
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-primary text-white p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+                        <div class="relative z-10">
+                            <h4 class="font-montserrat font-bold uppercase mb-4 tracking-widest text-secondary">Creative Tip</h4>
+                            <p class="text-gray-300 text-lg leading-relaxed italic">
+                                "Design is not just what it looks like and feels like. Design is how it works."
+                            </p>
+                            <p class="mt-4 text-sm text-gray-500 font-bold">— STEVE JOBS</p>
+                        </div>
+                        <i class="fas fa-quote-right absolute bottom-[-20px] right-[-20px] text-white/5 text-[150px]"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Portfolio -->
+            <div id="view-portfolio" class="tab-content hidden fade-in">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                        <h3 class="font-bold uppercase tracking-wider text-sm">Project Catalog</h3>
+                        <span class="text-xs font-bold text-gray-400" id="portfolio-count-tag">0 Items Total</span>
+                    </div>
+                    <div id="itemsList" class="divide-y divide-gray-50">
+                        <!-- Items injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Requests -->
+            <div id="view-requests" class="tab-content hidden fade-in">
+                <div id="requestsList" class="space-y-6">
+                    <!-- Requests injected here -->
+                </div>
+            </div>
+
+            <!-- Tab: Settings -->
+            <div id="view-settings" class="tab-content hidden fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Announcements Section -->
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <h4 class="font-montserrat font-bold uppercase mb-6 flex items-center">
+                            <i class="fas fa-bullhorn mr-2 text-secondary"></i> Announcement Bar
+                        </h4>
+                        <form id="announcementForm" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Message</label>
+                                <textarea id="announcementText" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="Welcome your visitors..."></textarea>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-semibold text-gray-700">Display on website</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="showAnnouncement" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-secondary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                                </label>
+                            </div>
+                            <div id="settingsFeedback" class="hidden text-xs font-bold p-3 rounded-lg text-center"></div>
+                            <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition mt-4">
+                                Update Announcement
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Profile Management -->
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <h4 class="font-montserrat font-bold uppercase mb-6 flex items-center">
+                            <i class="fas fa-user-shield mr-2 text-secondary"></i> Admin Profile
+                        </h4>
+                        <form id="profileForm" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">New Username</label>
+                                <input type="text" id="newUsername" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="Enter new admin ID" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">New Password</label>
+                                <div class="relative">
+                                    <input type="password" id="newPassword" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 pr-12 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="Enter new password" required>
+                                    <button type="button" id="toggleNewPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-secondary transition">
+                                        <i class="fas fa-eye" id="newEyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Note: Changing these will require a fresh login.</p>
+                            <div id="profileFeedback" class="hidden text-xs font-bold p-3 rounded-lg text-center"></div>
+                            <button type="submit" class="w-full bg-secondary text-primary font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition">
+                                Update Credentials
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // State Management
+        let currentTab = 'overview';
+        
+        // Tab Switching
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar-link').forEach(l => {
+                l.classList.remove('active', 'bg-secondary', 'text-primary');
+                l.classList.add('text-gray-400');
+            });
+            const activeLink = document.getElementById(`tab-${tabId}`);
+            activeLink.classList.add('active', 'bg-secondary', 'text-primary');
+            activeLink.classList.remove('text-gray-400');
+            
+            document.getElementById('pageTitle').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
+
+            if (tabId === 'portfolio') loadPortfolioItems();
+            if (tabId === 'requests') loadRequests();
+            if (tabId === 'settings') loadSettings();
+        }
+
+        // File Selection Feedback
+        document.getElementById('qImage').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('uploadPlaceholder').classList.add('hidden');
+                document.getElementById('uploadPreview').classList.remove('hidden');
+                document.getElementById('fileNameDisplay').innerText = file.name;
+            } else {
+                document.getElementById('uploadPlaceholder').classList.remove('hidden');
+                document.getElementById('uploadPreview').classList.add('hidden');
+            }
+        });
+
+        // Password Toggles
+        function setupPasswordToggle(toggleId, inputId, iconId) {
+            const toggle = document.getElementById(toggleId);
+            if (!toggle) return;
+            toggle.addEventListener('click', () => {
+                const input = document.getElementById(inputId);
+                const icon = document.getElementById(iconId);
+                const isPass = input.type === 'password';
+                input.type = isPass ? 'text' : 'password';
+                icon.classList.replace(isPass ? 'fa-eye' : 'fa-eye-slash', isPass ? 'fa-eye-slash' : 'fa-eye');
+            });
+        }
+        setupPasswordToggle('togglePassword', 'password', 'eyeIcon');
+        setupPasswordToggle('toggleNewPassword', 'newPassword', 'newEyeIcon');
+
+        // Feedback Helper
+        function showFeedback(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.innerText = message;
+            el.className = `block text-xs font-bold p-3 rounded-lg text-center ${isError ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 5000);
+        }
+
+        // Auth Check
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/auth/check');
+                const data = await res.json();
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                if (data.authenticated) {
+                    initDashboard();
+                } else {
+                    document.getElementById('loginWrapper').classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('loginWrapper').classList.remove('hidden');
+            }
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            const err = document.getElementById('loginError');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Authenticating...';
+            err.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i> Success';
+                    btn.classList.replace('bg-primary', 'bg-green-500');
+                    setTimeout(() => {
+                        document.getElementById('loginWrapper').classList.add('hidden');
+                        initDashboard();
+                    }, 800);
+                } else {
+                    throw new Error('Invalid');
+                }
+            } catch {
+                err.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = 'Authorize Session';
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.reload();
+        });
+
+        function initDashboard() {
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            updateStats();
+        }
+
+        async function updateStats() {
+            try {
+                const [pRes, rRes] = await Promise.all([fetch('/api/portfolio'), fetch('/api/requests')]);
+                const p = await pRes.json();
+                const r = await rRes.json();
+                document.getElementById('stat-portfolio').innerText = p.length;
+                document.getElementById('stat-requests').innerText = r.length;
+                document.getElementById('portfolio-count-tag').innerText = `${p.length} Items Total`;
+            } catch (err) { console.error(err); }
+        }
+
+        // Portfolio Management
+        async function loadPortfolioItems() {
+            const list = document.getElementById('itemsList');
+            list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
+            
+            try {
+                const res = await fetch('/api/portfolio');
+                const items = await res.json();
+                
+                if (items.length === 0) {
+                    list.innerHTML = '<div class="p-20 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">No entries found in catalog</div>';
+                    return;
+                }
+
+                list.innerHTML = items.map(item => `
+                    <div class="flex items-center p-6 hover:bg-gray-50 transition group">
+                        <div class="w-20 h-20 rounded-2xl overflow-hidden shadow-md flex-shrink-0 relative">
+                            <img src="${item.image_url}" class="w-full h-full object-cover transition transform group-hover:scale-110">
+                            ${item.visible === false ? '<div class="absolute inset-0 bg-black/60 flex items-center justify-center text-white"><i class="fas fa-eye-slash"></i></div>' : ''}
+                        </div>
+                        <div class="ml-6 flex-grow">
+                            <h4 class="font-extrabold text-primary text-lg">${item.title}</h4>
+                            <div class="flex items-center mt-1">
+                                <span class="text-[10px] font-bold bg-secondary/10 text-secondary px-2 py-1 rounded uppercase mr-2">${item.category}</span>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"><i class="far fa-calendar-alt mr-1"></i> ${new Date(item.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button onclick="toggleVisibility(${item.id}, ${item.visible === false})" class="w-10 h-10 rounded-full flex items-center justify-center ${item.visible !== false ? 'text-green-500 bg-green-50 hover:bg-green-100' : 'text-gray-400 bg-gray-100 hover:bg-gray-200'} transition" title="${item.visible !== false ? 'Hide from public' : 'Show to public'}">
+                                <i class="fas ${item.visible !== false ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </button>
+                            <button onclick="deleteItem(${item.id})" class="w-10 h-10 rounded-full flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                updateStats();
+            } catch (err) { console.error(err); }
+        }
+
+        async function toggleVisibility(id, visible) {
+            try {
+                const res = await fetch(`/api/portfolio/${id}/visibility`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visible })
+                });
+                if (res.ok) loadPortfolioItems();
+            } catch (err) { console.error(err); }
+        }
+
+        // Requests Management
+        async function loadRequests() {
+            const list = document.getElementById('requestsList');
+            list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
+            
+            try {
+                const res = await fetch('/api/requests');
+                const requests = await res.json();
+
+                if (requests.length === 0) {
+                    list.innerHTML = '<div class="p-20 text-center bg-white rounded-3xl text-gray-400 font-bold uppercase tracking-widest text-xs border border-dashed border-gray-200">Inbox is currently empty</div>';
+                    return;
+                }
+
+                list.innerHTML = requests.map(req => `
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 group hover:border-secondary transition">
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary mb-1 block">${req.service}</span>
+                                    <h3 class="text-2xl font-extrabold text-primary mb-2">${req.subject}</h3>
+                                </div>
+                                <span class="text-xs font-bold text-gray-300">${new Date(req.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-6">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-user-circle w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Client:</span> ${req.name}
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-envelope w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Email:</span> ${req.email}
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-phone-alt w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Phone:</span> ${req.phone || 'N/A'}
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-6 rounded-2xl text-sm text-gray-700 leading-relaxed border border-gray-100 italic">
+                                "${req.message}"
+                            </div>
+                        </div>
+                        <div class="flex md:flex-col justify-end gap-2">
+                            <a href="mailto:${req.email}" class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-secondary hover:text-primary transition shadow-lg">
+                                <i class="fas fa-reply"></i>
+                            </a>
+                            <button onclick="deleteRequest(${req.id})" class="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                updateStats();
+            } catch (err) { console.error(err); }
+        }
+
+        // Settings Management
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                document.getElementById('announcementText').value = data.announcement || "";
+                document.getElementById('showAnnouncement').checked = data.showAnnouncement;
+            } catch (err) { console.error(err); }
+        }
+
+        document.getElementById('announcementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const data = {
+                announcement: document.getElementById('announcementText').value,
+                showAnnouncement: document.getElementById('showAnnouncement').checked
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Updating...';
+
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                
+                if (res.ok) {
+                    showFeedback('settingsFeedback', 'Announcement settings updated successfully!');
+                } else {
+                    showFeedback('settingsFeedback', result.error || 'Failed to update settings.', true);
+                }
+            } catch (err) {
+                showFeedback('settingsFeedback', 'Connection error.', true);
+            }
+            btn.disabled = false;
+            btn.innerHTML = 'Update Announcement';
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const btn = e.target.querySelector('button');
+            
+            if (confirm('Are you sure? You will be logged out immediately to apply changes.')) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Saving...';
+                
+                try {
+                    const res = await fetch('/api/profile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const result = await res.json();
+                    
+                    if (res.ok) {
+                        showFeedback('profileFeedback', 'Profile updated! Logging out...');
+                        setTimeout(async () => {
+                            await fetch('/api/logout', { method: 'POST' });
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showFeedback('profileFeedback', result.error || 'Failed to update profile.', true);
+                        btn.disabled = false;
+                        btn.innerHTML = 'Update Credentials';
+                    }
+                } catch (err) {
+                    showFeedback('profileFeedback', 'Connection error.', true);
+                    btn.disabled = false;
+                    btn.innerHTML = 'Update Credentials';
+                }
+            }
+        });
+
+        // Quick Upload
+        document.getElementById('quickUploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const fileInput = document.getElementById('qImage');
+            
+            if (fileInput.files.length === 0) {
+                alert('Please select an image first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('qTitle').value);
+            formData.append('category', document.getElementById('qCategory').value);
+            formData.append('description', document.getElementById('qDescription').value);
+            formData.append('image', fileInput.files[0]);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Publishing...';
+
+            try {
+                const res = await fetch('/api/portfolio', { method: 'POST', body: formData });
+                if (res.ok) {
+                    alert('Success! Project is now live.');
+                    e.target.reset();
+                    document.getElementById('uploadPlaceholder').classList.remove('hidden');
+                    document.getElementById('uploadPreview').classList.add('hidden');
+                    updateStats();
+                } else { 
+                    const data = await res.json();
+                    alert('Upload failed: ' + (data.error || 'Unknown error')); 
+                }
+            } catch (err) {
+                alert('Connection error. Please check your server.');
+            }
+            btn.disabled = false;
+            btn.innerHTML = 'Publish to Portfolio';
+        });
+
+        // Generic Delete
+        async function deleteItem(id) {
+            if (confirm('Permanently remove this project from portfolio?')) {
+                await fetch(`/api/portfolio/${id}`, { method: 'DELETE' });
+                loadPortfolioItems();
+            }
+        }
+        async function deleteRequest(id) {
+            if (confirm('Dismiss and delete this client request?')) {
+                await fetch(`/api/requests/${id}`, { method: 'DELETE' });
+                loadRequests();
+            }
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>
