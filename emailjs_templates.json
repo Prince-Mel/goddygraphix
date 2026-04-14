@@ -1,0 +1,36 @@
+{
+  "_comment": "EmailJS Template Configuration for GoddyGraphix",
+  "_instructions": "Copy these template configurations into your EmailJS admin dashboard (https://dashboard.emailjs.com/admin)",
+
+  "businessman_email_template": {
+    "_description": "Template sent to the businessman when a customer submits the contact form",
+    "template_id": "TEMPLATE_ID_HERE — create this in EmailJS dashboard",
+    "subject": "🚀 New Service Request: {{service}}",
+    "content_type": "text/html",
+    "body_html": "<h2>New Contact Form Submission</h2>\n<table style='border-collapse:collapse;width:100%;max-width:600px;font-family:Arial,sans-serif;'>\n  <tr><td style='padding:12px;border:1px solid #ddd;background:#f8f9fa;font-weight:bold;width:140px;'>👤 Name</td><td style='padding:12px;border:1px solid #ddd;'>{{name}}</td></tr>\n  <tr><td style='padding:12px;border:1px solid #ddd;background:#f8f9fa;font-weight:bold;'>📧 Email</td><td style='padding:12px;border:1px solid #ddd;'><a href='mailto:{{email}}'>{{email}}</a></td></tr>\n  <tr><td style='padding:12px;border:1px solid #ddd;background:#f8f9fa;font-weight:bold;'>📞 Phone</td><td style='padding:12px;border:1px solid #ddd;'>{{phone}}</td></tr>\n  <tr><td style='padding:12px;border:1px solid #ddd;background:#f8f9fa;font-weight:bold;'>🛠 Service</td><td style='padding:12px;border:1px solid #ddd;'>{{service}}</td></tr>\n  <tr><td style='padding:12px;border:1px solid #ddd;background:#f8f9fa;font-weight:bold;'>📌 Subject</td><td style='padding:12px;border:1px solid #ddd;'>{{subject}}</td></tr>\n  <tr><td style='padding:12px;border:1px solid #ddd;background:#f8f9fa;font-weight:bold;vertical-align:top;'>📝 Message</td><td style='padding:12px;border:1px solid #ddd;'>{{message}}</td></tr>\n</table>\n<p style='margin-top:20px;color:#888;font-size:12px;'>Submitted on: {{date}}</p>",
+    "body_text": "New Service Request\n\nName: {{name}}\nEmail: {{email}}\nPhone: {{phone}}\nService: {{service}}\nSubject: {{subject}}\nMessage: {{message}}\nDate: {{date}}",
+    "to_email": "{{to_email}}",
+    "variables": ["to_email", "name", "email", "phone", "service", "subject", "message", "date"]
+  },
+
+  "customer_email_template": {
+    "_description": "Auto-reply / confirmation email sent to the customer",
+    "template_id": "TEMPLATE_ID_HERE — create this in EmailJS dashboard",
+    "subject": "Thank you for contacting Goddy Graphix! — Re: {{subject}}",
+    "content_type": "text/html",
+    "body_html": "<div style='max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#333;'>\n  <div style='background:#01a7e3;color:#fff;padding:30px;text-align:center;'>\n    <h1 style='margin:0;font-size:28px;'>Goddy Graphix</h1>\n    <p style='margin:10px 0 0;font-size:16px;'>Creative Graphic Design Solutions</p>\n  </div>\n  <div style='padding:30px;background:#fafafa;'>\n    <h2 style='color:#01a7e3;'>Dear {{to_name}},</h2>\n    <p style='font-size:16px;line-height:1.6;'>Thank you for contacting <strong>Goddy Graphix</strong>! We have received your inquiry and our team will get back to you shortly.</p>\n    <div style='background:#fff;border-left:4px solid #01a7e3;padding:20px;margin:20px 0;'>\n      <h3 style='margin-top:0;color:#01a7e3;'>Your Inquiry Summary</h3>\n      <p style='margin:5px 0;'><strong>Service:</strong> {{service}}</p>\n      <p style='margin:5px 0;'><strong>Subject:</strong> {{subject}}</p>\n    </div>\n    <p style='font-size:16px;line-height:1.6;'>We appreciate your interest and look forward to working with you to bring your creative vision to life.</p>\n    <p style='margin-top:30px;'><strong>Best regards,</strong><br>\n    <em>Goddy Graphix Team</em></p>\n  </div>\n  <div style='background:#333;color:#fff;padding:20px;text-align:center;font-size:12px;'>\n    <p style='margin:5px;'>📧 laryeamel06@gmail.com | 📞 +233 59 746 6615</p>\n    <p style='margin:5px;'>Accra, Ghana — Adenta-Dododa, Off Regimanuel Road</p>\n  </div>\n</div>",
+    "body_text": "Dear {{to_name}},\n\nThank you for contacting Goddy Graphix! We have received your inquiry and will get back to you shortly.\n\nYour Inquiry Summary:\nService: {{service}}\nSubject: {{subject}}\n\nWe appreciate your interest and look forward to working with you.\n\nBest regards,\nGoddy Graphix Team\n📧 laryeamel06@gmail.com\n📞 +233 59 746 6615",
+    "to_email": "{{to_email}}",
+    "variables": ["to_email", "to_name", "subject", "service", "message"]
+  },
+
+  "setup_steps": [
+    "1. Log in to https://dashboard.emailjs.com/admin",
+    "2. Go to 'Email Templates' and click 'Create New Template' (create two templates)",
+    "3. For the businessman template: copy the subject and body from 'businessman_email_template' above",
+    "4. For the customer template: copy the subject and body from 'customer_email_template' above",
+    "5. After creating each template, note the Template ID (e.g., template_xyz123)",
+    "6. Replace TEMPLATE_ID_HERE in this file with your actual template IDs",
+    "7. Add the template IDs and your Public Key to the .env file (see .env.example)"
+  ]
+}

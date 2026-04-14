@@ -1,18 +1,30 @@
+// Clear system env vars that override .env
+delete process.env.DB_HOST;
+delete process.env.DB_USER;
+delete process.env.DB_PASSWORD;
+delete process.env.DB_NAME;
+delete process.env.DB_PORT;
+delete process.env.DB_SSL;
+
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer');
-const axios = require('axios'); // For Telegram notifications
+const axios = require('axios'); // For Telegram & Python email notifications
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { spawn } = require('child_process'); // For Python email automation
 const pool = require('./db'); // MySQL Connection
-const { upload } = require('./cloudinary'); // Cloudinary Uploads
+const { upload } = require('./cloudinary'); // Local File Uploads
 
 const app = express();
 const port = process.env.PORT || 3000;
 const COOKIE_SECRET = process.env.COOKIE_SECRET || 'your-very-secure-random-secret-key-123';
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
 
 // --- Database Initialization ---
 const initDb = async () => {
@@ -64,6 +76,22 @@ const initDb = async () => {
             )
         `);
 
+        // Services Table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS services (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                long_description TEXT,
+                price_type ENUM('fixed', 'range') DEFAULT 'range',
+                price_min DECIMAL(10, 2),
+                price_max DECIMAL(10, 2),
+                image_url VARCHAR(500),
+                visible BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         // Insert Default Admin if not exists
         const [users] = await connection.query("SELECT * FROM users WHERE username = 'goddy'");
         if (users.length === 0) {
@@ -79,6 +107,27 @@ const initDb = async () => {
             console.log("[DB] Default settings created.");
         }
 
+        // Seed Default Services if table is empty
+        const [existingServices] = await connection.query("SELECT id FROM services LIMIT 1");
+        if (existingServices.length === 0) {
+            const defaultServices = [
+                ['Brand Identity', 'Logos, brand guidelines, and visual identity systems that make your business stand out.', 'We craft unique brand identities that resonate with your target audience. Our process includes research, concept development, and refinement to ensure your brand communicates effectively across all touchpoints.', 50, 500, 'brand-icon.png'],
+                ['Digital Design', 'Social media graphics, web banners, and digital marketing materials.', 'From social media campaigns to display advertising, we design eye-catching digital assets that drive engagement and conversions. Every piece is optimized for its platform while maintaining brand consistency.', 30, 300, 'digital-icon.png'],
+                ['Print Design', 'Business cards, broch flyers, posters, and all your printed collateral needs.', 'Our print design services cover everything from business cards to large-format prints. We ensure print-ready files with proper color profiles, bleeds, and specifications for professional results.', 20, 200, 'print-icon.png'],
+                ['Motion Graphics', 'Animated logos, explainer videos, and dynamic visual content.', 'Bring your ideas to life with professional motion design. Whether it is a short social media animation or a full explainer video, we create engaging motion content that captures attention.', 100, 800, 'motion-icon.png'],
+                ['E-commerce', 'Complete online store design with product listings and payment integration.', 'We build beautiful, functional e-commerce stores with secure payment gateways, inventory management, and optimized checkout flows designed to maximize conversions and customer satisfaction.', 200, 2000, 'ecommerce-icon.png'],
+                ['Illustration', 'Custom illustrations, infographics, and hand-drawn visual elements.', 'Our illustration services deliver unique artwork tailored to your project. From editorial illustrations to technical infographics, we create visuals that communicate complex ideas simply and beautifully.', 40, 400, 'illustration-icon.png']
+            ];
+
+            for (const svc of defaultServices) {
+                await connection.query(
+                    "INSERT INTO services (name, description, long_description, price_min, price_max, image_url, visible, price_type) VALUES (?, ?, ?, ?, ?, ?, TRUE, 'range')",
+                    svc
+                );
+            }
+            console.log("[DB] 6 default services seeded.");
+        }
+
         connection.release();
         console.log("[DB] Database initialized successfully.");
     } catch (err) {
@@ -90,6 +139,31 @@ const initDb = async () => {
 initDb();
 
 // --- Notification Helpers ---
+
+// Python Email Automation (EmailJS)
+const sendPythonEmails = (request) => {
+    if (!process.env.PYTHON_EMAIL_AUTOMATION || process.env.PYTHON_EMAIL_AUTOMATION !== 'true') {
+        console.log("[PYTHON EMAIL] Disabled — set PYTHON_EMAIL_AUTOMATION=true in .env to enable");
+        return;
+    }
+
+    const pythonUrl = process.env.PYTHON_EMAIL_URL || 'http://localhost:5000/send-emails';
+
+    axios.post(pythonUrl, {
+        name: request.name,
+        email: request.email,
+        phone: request.phone,
+        service: request.service,
+        subject: request.subject,
+        message: request.message,
+        created_at: request.created_at || new Date().toISOString()
+    }).then(res => {
+        console.log("[PYTHON EMAIL] Both emails sent successfully!");
+    }).catch(err => {
+        console.error("[PYTHON EMAIL] Error:", err.message);
+    });
+};
+
 const sendNotifications = async (request) => {
     // 1. Telegram Notification (Instant)
     if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
@@ -130,6 +204,9 @@ const sendNotifications = async (request) => {
 
         transporter.sendMail(mailOptions).catch(err => console.error("[NOTIFY] Email Error:", err));
     }
+
+    // 3. Python Email Automation (EmailJS — Businessman + Customer)
+    sendPythonEmails(request);
 };
 
 // Security Middleware
@@ -282,12 +359,12 @@ app.get('/api/portfolio', async (req, res) => {
     }
 });
 
-// Add Portfolio Item (Protected) - Uses Cloudinary 'upload' middleware
+// Add Portfolio Item (Protected) - Uses local file upload
 app.post('/api/portfolio', requireAuth, upload.single('image'), async (req, res) => {
     try {
-        const { title, category, description } = req.body;  
-        // Cloudinary returns the URL in req.file.path
-        const imageUrl = req.file ? req.file.path : '';
+        const { title, category, description } = req.body;
+        // Store relative path for local files
+        const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
 
         if (!title || !category || !imageUrl) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -297,7 +374,7 @@ app.post('/api/portfolio', requireAuth, upload.single('image'), async (req, res)
             "INSERT INTO portfolio (title, category, description, image_url, visible) VALUES (?, ?, ?, ?, ?)",
             [title, category, description || "", imageUrl, true]
         );
-        
+
         res.json({
             id: result.insertId,
             title,
@@ -329,10 +406,116 @@ app.patch('/api/portfolio/:id/visibility', requireAuth, async (req, res) => {
 app.delete('/api/portfolio/:id', requireAuth, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        // Note: We are not automatically deleting images from Cloudinary here to keep it simple.
-        // In a production app, you might want to use cloudinary.uploader.destroy(public_id).
-        
         await pool.query("DELETE FROM portfolio WHERE id = ?", [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+// --- Services Endpoints ---
+
+// Get Services (public sees visible only, admin sees all)
+app.get('/api/services', async (req, res) => {
+    try {
+        const isAdmin = req.signedCookies && req.signedCookies.auth === 'true';
+        let query = "SELECT * FROM services";
+        if (!isAdmin) {
+            query += " WHERE visible = TRUE";
+        }
+        query += " ORDER BY id ASC";
+
+        const [rows] = await pool.query(query);
+        const formatted = rows.map(row => ({
+            ...row,
+            visible: !!row.visible,
+            price_min: row.price_min ? parseFloat(row.price_min) : null,
+            price_max: row.price_max ? parseFloat(row.price_max) : null
+        }));
+        res.json(formatted);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+// Add Service (Protected, with local file upload)
+app.post('/api/services', requireAuth, upload.single('image'), async (req, res) => {
+    try {
+        const { name, description, long_description, price_type, price_min, price_max, visible } = req.body;
+        const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
+
+        if (!name || !description) {
+            return res.status(400).json({ error: 'Name and description are required' });
+        }
+
+        const [result] = await pool.query(
+            "INSERT INTO services (name, description, long_description, price_type, price_min, price_max, image_url, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [name, description, long_description || '', price_type || 'range', price_min || null, price_max || null, imageUrl, visible !== false]
+        );
+
+        res.json({
+            id: result.insertId,
+            name, description, long_description, price_type,
+            price_min: price_min ? parseFloat(price_min) : null,
+            price_max: price_max ? parseFloat(price_max) : null,
+            image_url: imageUrl,
+            visible: visible !== false
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+// Update Service (Protected)
+app.put('/api/services/:id', requireAuth, upload.single('image'), async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { name, description, long_description, price_type, price_min, price_max, visible } = req.body;
+        const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+        if (!name || !description) {
+            return res.status(400).json({ error: 'Name and description are required' });
+        }
+
+        let query = "UPDATE services SET name = ?, description = ?, long_description = ?, price_type = ?, price_min = ?, price_max = ?, visible = ?";
+        let params = [name, description, long_description || '', price_type || 'range', price_min || null, price_max || null, visible !== false];
+
+        if (imageUrl) {
+            query += ", image_url = ?";
+            params.push(imageUrl);
+        }
+        query += " WHERE id = ?";
+        params.push(id);
+
+        await pool.query(query, params);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+// Toggle Service Visibility
+app.patch('/api/services/:id/visibility', requireAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { visible } = req.body;
+        await pool.query("UPDATE services SET visible = ? WHERE id = ?", [visible, id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+// Delete Service
+app.delete('/api/services/:id', requireAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        await pool.query("DELETE FROM services WHERE id = ?", [id]);
         res.json({ success: true });
     } catch (err) {
         console.error(err);

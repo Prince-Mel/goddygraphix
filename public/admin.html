@@ -109,6 +109,10 @@
                     <i class="fas fa-layer-group w-8"></i>
                     <span class="text-sm font-semibold">Portfolio</span>
                 </button>
+                <button onclick="switchTab('services')" id="tab-services" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
+                    <i class="fas fa-briefcase w-8"></i>
+                    <span class="text-sm font-semibold">Services</span>
+                </button>
                 <button onclick="switchTab('requests')" id="tab-requests" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
                     <i class="fas fa-envelope-open-text w-8"></i>
                     <span class="text-sm font-semibold">Requests</span>
@@ -248,6 +252,94 @@
                 </div>
             </div>
 
+            <!-- Tab: Services -->
+            <div id="view-services" class="tab-content hidden fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Service List -->
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                            <h3 class="font-bold uppercase tracking-wider text-sm">Business Services</h3>
+                            <span class="text-xs font-bold text-gray-400" id="services-count-tag">0 Services</span>
+                        </div>
+                        <div id="servicesList" class="divide-y divide-gray-50 max-h-[600px] overflow-y-auto">
+                            <!-- Services injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Add/Edit Service Form -->
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <h4 class="font-montserrat font-bold uppercase mb-6 flex items-center">
+                            <i class="fas fa-plus-circle mr-2 text-secondary" id="serviceFormIcon"></i>
+                            <span id="serviceFormTitle">Add New Service</span>
+                        </h4>
+                        <form id="serviceForm" class="space-y-4">
+                            <input type="hidden" id="serviceEditId" value="">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Service Name</label>
+                                <input type="text" id="svcName" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="e.g. Brand Identity" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Short Description</label>
+                                <textarea id="svcDesc" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="Brief overview for the services grid..." required></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Detailed Description</label>
+                                <textarea id="svcLongDesc" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="In-depth service details for the modal/page..."></textarea>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Price Type</label>
+                                    <select id="svcPriceType" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition">
+                                        <option value="range">Range</option>
+                                        <option value="fixed">Fixed</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Min / Fixed</label>
+                                    <input type="number" id="svcPriceMin" step="0.01" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="0.00">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Max</label>
+                                    <input type="number" id="svcPriceMax" step="0.01" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Service Image</label>
+                                <div class="relative">
+                                    <input type="file" id="svcImage" accept="image/*" class="hidden">
+                                    <label for="svcImage" class="flex items-center justify-center w-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:bg-gray-100 transition group">
+                                        <div class="text-center" id="svcUploadPlaceholder">
+                                            <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 group-hover:text-secondary transition mb-2"></i>
+                                            <p class="text-xs text-gray-500 font-medium">Click to upload service image</p>
+                                        </div>
+                                        <div class="hidden text-center" id="svcUploadPreview">
+                                            <p class="text-xs font-bold text-secondary uppercase mb-1">Image Selected</p>
+                                            <p class="text-xs text-gray-800 font-medium" id="svcFileName"></p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-semibold text-gray-700">Visible on website</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="svcVisible" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-secondary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                                </label>
+                            </div>
+                            <div id="serviceFeedback" class="hidden text-xs font-bold p-3 rounded-lg text-center"></div>
+                            <div class="flex gap-3">
+                                <button type="submit" id="svcSubmitBtn" class="flex-1 bg-secondary text-primary font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition">
+                                    <i class="fas fa-plus mr-2"></i> Add Service
+                                </button>
+                                <button type="button" id="svcCancelBtn" class="hidden px-4 bg-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-300 transition">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab: Requests -->
             <div id="view-requests" class="tab-content hidden fade-in">
                 <div id="requestsList" class="space-y-6">
@@ -322,7 +414,7 @@
             currentTab = tabId;
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            
+
             document.querySelectorAll('.sidebar-link').forEach(l => {
                 l.classList.remove('active', 'bg-secondary', 'text-primary');
                 l.classList.add('text-gray-400');
@@ -330,15 +422,16 @@
             const activeLink = document.getElementById(`tab-${tabId}`);
             activeLink.classList.add('active', 'bg-secondary', 'text-primary');
             activeLink.classList.remove('text-gray-400');
-            
+
             document.getElementById('pageTitle').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
 
             if (tabId === 'portfolio') loadPortfolioItems();
+            if (tabId === 'services') loadServices();
             if (tabId === 'requests') loadRequests();
             if (tabId === 'settings') loadSettings();
         }
 
-        // File Selection Feedback
+        // File Selection Feedback (Portfolio)
         document.getElementById('qImage').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -348,6 +441,19 @@
             } else {
                 document.getElementById('uploadPlaceholder').classList.remove('hidden');
                 document.getElementById('uploadPreview').classList.add('hidden');
+            }
+        });
+
+        // Service Image File Selection
+        document.getElementById('svcImage').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('svcUploadPlaceholder').classList.add('hidden');
+                document.getElementById('svcUploadPreview').classList.remove('hidden');
+                document.getElementById('svcFileName').innerText = file.name;
+            } else {
+                document.getElementById('svcUploadPlaceholder').classList.remove('hidden');
+                document.getElementById('svcUploadPreview').classList.add('hidden');
             }
         });
 
@@ -686,6 +792,190 @@
             if (confirm('Dismiss and delete this client request?')) {
                 await fetch(`/api/requests/${id}`, { method: 'DELETE' });
                 loadRequests();
+            }
+        }
+
+        // --- Services Management ---
+
+        // Load Services
+        async function loadServices() {
+            const list = document.getElementById('servicesList');
+            list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
+
+            try {
+                const res = await fetch('/api/services');
+                const services = await res.json();
+
+                document.getElementById('services-count-tag').innerText = `${services.length} Services`;
+
+                if (services.length === 0) {
+                    list.innerHTML = '<div class="p-20 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">No services yet. Add your first service!</div>';
+                    return;
+                }
+
+                list.innerHTML = services.map(svc => {
+                    const priceDisplay = svc.price_type === 'fixed' 
+                        ? `GH₵${svc.price_min}` 
+                        : `GH₵${svc.price_min} - GH₵${svc.price_max}`;
+
+                    return `
+                    <div class="flex items-center p-6 hover:bg-gray-50 transition group">
+                        <div class="w-16 h-16 rounded-2xl overflow-hidden shadow-md flex-shrink-0 relative">
+                            <img src="${svc.image_url || 'https://via.placeholder.com/64?text=Service'}" class="w-full h-full object-cover">
+                            ${svc.visible === false ? '<div class="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xs"><i class="fas fa-eye-slash"></i></div>' : ''}
+                        </div>
+                        <div class="ml-4 flex-grow min-w-0">
+                            <h4 class="font-extrabold text-primary text-sm truncate">${svc.name}</h4>
+                            <p class="text-xs text-gray-500 mt-0.5 truncate">${svc.description}</p>
+                            <p class="text-xs font-bold text-secondary mt-1">${priceDisplay}</p>
+                        </div>
+                        <div class="flex items-center gap-3 ml-4">
+                            <button onclick="editService(${svc.id})" class="w-9 h-9 rounded-full flex items-center justify-center text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="toggleServiceVisibility(${svc.id}, ${svc.visible === false})" class="w-9 h-9 rounded-full flex items-center justify-center ${svc.visible !== false ? 'text-green-500 bg-green-50 hover:bg-green-100' : 'text-gray-400 bg-gray-100 hover:bg-gray-200'} transition" title="${svc.visible !== false ? 'Hide' : 'Show'}">
+                                <i class="fas ${svc.visible !== false ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                            </button>
+                            <button onclick="deleteService(${svc.id})" class="w-9 h-9 rounded-full flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        // Edit Service - populate form
+        async function editService(id) {
+            const res = await fetch('/api/services');
+            const services = await res.json();
+            const svc = services.find(s => s.id === id);
+            if (!svc) return;
+
+            document.getElementById('serviceEditId').value = svc.id;
+            document.getElementById('svcName').value = svc.name;
+            document.getElementById('svcDesc').value = svc.description;
+            document.getElementById('svcLongDesc').value = svc.long_description || '';
+            document.getElementById('svcPriceType').value = svc.price_type;
+            document.getElementById('svcPriceMin').value = svc.price_min || '';
+            document.getElementById('svcPriceMax').value = svc.price_max || '';
+            document.getElementById('svcVisible').checked = svc.visible;
+            document.getElementById('svcImage').value = '';
+
+            // Update form UI for edit mode
+            document.getElementById('serviceFormTitle').innerText = 'Edit Service';
+            document.getElementById('serviceFormIcon').className = 'fas fa-edit mr-2 text-secondary';
+            document.getElementById('svcSubmitBtn').innerHTML = '<i class="fas fa-save mr-2"></i> Update Service';
+            document.getElementById('svcCancelBtn').classList.remove('hidden');
+
+            // Show existing image info
+            if (svc.image_url) {
+                document.getElementById('svcUploadPlaceholder').classList.add('hidden');
+                document.getElementById('svcUploadPreview').classList.remove('hidden');
+                document.getElementById('svcFileName').innerText = 'Current image (upload new to replace)';
+            }
+
+            // Scroll to form
+            document.getElementById('serviceForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Reset service form
+        function resetServiceForm() {
+            document.getElementById('serviceForm').reset();
+            document.getElementById('serviceEditId').value = '';
+            document.getElementById('svcVisible').checked = true;
+            document.getElementById('serviceFormTitle').innerText = 'Add New Service';
+            document.getElementById('serviceFormIcon').className = 'fas fa-plus-circle mr-2 text-secondary';
+            document.getElementById('svcSubmitBtn').innerHTML = '<i class="fas fa-plus mr-2"></i> Add Service';
+            document.getElementById('svcCancelBtn').classList.add('hidden');
+            document.getElementById('svcUploadPlaceholder').classList.remove('hidden');
+            document.getElementById('svcUploadPreview').classList.add('hidden');
+            document.getElementById('serviceFeedback').classList.add('hidden');
+        }
+
+        document.getElementById('svcCancelBtn').addEventListener('click', resetServiceForm);
+
+        // Price type toggle - hide max when fixed
+        document.getElementById('svcPriceType').addEventListener('change', (e) => {
+            const maxField = document.getElementById('svcPriceMax');
+            if (e.target.value === 'fixed') {
+                maxField.disabled = true;
+                maxField.parentElement.classList.add('opacity-50');
+            } else {
+                maxField.disabled = false;
+                maxField.parentElement.classList.remove('opacity-50');
+            }
+        });
+
+        // Service Form Submit
+        document.getElementById('serviceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('svcSubmitBtn');
+            const editId = document.getElementById('serviceEditId').value;
+            const isEdit = !!editId;
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('svcName').value);
+            formData.append('description', document.getElementById('svcDesc').value);
+            formData.append('long_description', document.getElementById('svcLongDesc').value);
+            formData.append('price_type', document.getElementById('svcPriceType').value);
+            formData.append('price_min', document.getElementById('svcPriceMin').value || null);
+            formData.append('price_max', document.getElementById('svcPriceMax').value || null);
+            formData.append('visible', document.getElementById('svcVisible').checked);
+
+            const imageFile = document.getElementById('svcImage').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Saving...';
+
+            try {
+                const url = isEdit ? `/api/services/${editId}` : '/api/services';
+                const method = isEdit ? 'PUT' : 'POST';
+                const res = await fetch(url, { method, body: formData });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showFeedback('serviceFeedback', isEdit ? 'Service updated successfully!' : 'Service added successfully!');
+                    resetServiceForm();
+                    loadServices();
+                } else {
+                    showFeedback('serviceFeedback', data.error || 'Failed to save service.', true);
+                }
+            } catch (err) {
+                showFeedback('serviceFeedback', 'Connection error.', true);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = isEdit 
+                ? '<i class="fas fa-save mr-2"></i> Update Service' 
+                : '<i class="fas fa-plus mr-2"></i> Add Service';
+        });
+
+        // Toggle Service Visibility
+        async function toggleServiceVisibility(id, visible) {
+            try {
+                const res = await fetch(`/api/services/${id}/visibility`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visible })
+                });
+                if (res.ok) loadServices();
+            } catch (err) { console.error(err); }
+        }
+
+        // Delete Service
+        async function deleteService(id) {
+            if (confirm('Permanently delete this service?')) {
+                try {
+                    const res = await fetch(`/api/services/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        resetServiceForm();
+                        loadServices();
+                    }
+                } catch (err) { console.error(err); }
             }
         }
 
