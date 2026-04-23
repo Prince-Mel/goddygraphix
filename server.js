@@ -92,6 +92,21 @@ const initDb = async () => {
             )
         `);
 
+        // Testimonials Table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS testimonials (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                message TEXT NOT NULL,
+                service VARCHAR(100),
+                file_url VARCHAR(255),
+                is_pdf BOOLEAN DEFAULT FALSE,
+                approved BOOLEAN DEFAULT FALSE,
+                visible BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         // Insert Default Admin if not exists
         const [users] = await connection.query("SELECT * FROM users WHERE username = 'goddy'");
         if (users.length === 0) {
@@ -452,7 +467,7 @@ app.post('/api/services', requireAuth, upload.single('image'), async (req, res) 
 
         const [result] = await pool.query(
             "INSERT INTO services (name, description, long_description, price_type, price_min, price_max, image_url, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [name, description, long_description || '', price_type || 'range', price_min || null, price_max || null, imageUrl, visible !== false]
+            [name, description, long_description || '', price_type || 'range', price_min || null, price_max || null, imageUrl, String(visible) === 'true']
         );
 
         res.json({
@@ -461,7 +476,7 @@ app.post('/api/services', requireAuth, upload.single('image'), async (req, res) 
             price_min: price_min ? parseFloat(price_min) : null,
             price_max: price_max ? parseFloat(price_max) : null,
             image_url: imageUrl,
-            visible: visible !== false
+            visible: String(visible) === 'true'
         });
     } catch (err) {
         console.error(err);
@@ -481,7 +496,7 @@ app.put('/api/services/:id', requireAuth, upload.single('image'), async (req, re
         }
 
         let query = "UPDATE services SET name = ?, description = ?, long_description = ?, price_type = ?, price_min = ?, price_max = ?, visible = ?";
-        let params = [name, description, long_description || '', price_type || 'range', price_min || null, price_max || null, visible !== false];
+        let params = [name, description, long_description || '', price_type || 'range', price_min || null, price_max || null, String(visible) === 'true'];
 
         if (imageUrl) {
             query += ", image_url = ?";
@@ -522,6 +537,125 @@ app.delete('/api/services/:id', requireAuth, async (req, res) => {
         res.status(500).json({ error: "Database error" });
     }
 });
+
+// --- Testimonials Endpoints ---
+
+app.get('/api/testimonials', async (req, res) => {
+    try {
+        const isAdmin = req.signedCookies && req.signedCookies.auth === 'true';
+        let query = "SELECT * FROM testimonials";
+        if (!isAdmin) {
+            query += " WHERE approved = TRUE AND visible = TRUE";
+        }
+        query += " ORDER BY id DESC";
+
+        const [rows] = await pool.query(query);
+        const formatted = rows.map(row => ({
+            ...row,
+            approved: !!row.approved,
+            visible: !!row.visible,
+            is_pdf: !!row.is_pdf
+        }));
+        res.json(formatted);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+app.post('/api/testimonials', upload.single('project_file'), contactLimiter, async (req, res) => {
+    try {
+        const { name, message, service } = req.body;
+        
+        if (!name || !message) {
+            return res.status(400).json({ error: 'Name and message are required' });
+        }
+
+        let fileUrl = '';
+        let isPdf = false;
+        
+        if (req.file) {
+            fileUrl = `/uploads/${req.file.filename}`;
+            isPdf = req.file.mimetype === 'application/pdf';
+        }
+
+        const [result] = await pool.query(
+            "INSERT INTO testimonials (name, message, service, file_url, is_pdf, approved, visible) VALUES (?, ?, ?, ?, ?, FALSE, TRUE)",
+            [name, message, service || 'General Service', fileUrl, isPdf]
+        );
+
+        res.json({ success: true, message: "Testimony submitted successfully and is awaiting review.", id: result.insertId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+app.put('/api/testimonials/:id', requireAuth, upload.single('project_file'), async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { name, message, service, approved, visible } = req.body;
+        
+        if (!name || !message) {
+            return res.status(400).json({ error: 'Name and message are required' });
+        }
+
+        let query = "UPDATE testimonials SET name = ?, message = ?, service = ?, approved = ?, visible = ?";
+        let params = [name, message, service || '', String(approved) === 'true', String(visible) === 'true'];
+
+        if (req.file) {
+            query += ", file_url = ?, is_pdf = ?";
+            params.push(`/uploads/${req.file.filename}`, req.file.mimetype === 'application/pdf');
+        }
+
+        query += " WHERE id = ?";
+        params.push(id);
+
+        await pool.query(query, params);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+app.delete('/api/testimonials/:id', requireAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        await pool.query("DELETE FROM testimonials WHERE id = ?", [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+app.patch('/api/testimonials/:id', requireAuth, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const updates = [];
+        const params = [];
+
+        if (req.body.approved !== undefined) {
+            updates.push('approved = ?');
+            params.push(String(req.body.approved) === 'true');
+        }
+        if (req.body.visible !== undefined) {
+            updates.push('visible = ?');
+            params.push(String(req.body.visible) === 'true');
+        }
+        if (updates.length === 0) return res.status(400).json({ error: 'Nothing to update' });
+
+        params.push(id);
+        await pool.query(`UPDATE testimonials SET ${updates.join(', ')} WHERE id = ?`, params);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// --- Service Requests Endpoints ---
 
 // Submit Service Request
 app.post('/api/requests', contactLimiter, async (req, res) => {
