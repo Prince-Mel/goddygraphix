@@ -43,6 +43,28 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #F5A623; border-radius: 10px; }
+        
+        .sidebar-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        @media (min-width: 1024px) {
+            .sidebar-collapsed aside { width: 5rem; }
+            .sidebar-collapsed main { margin-left: 5rem; }
+            .sidebar-collapsed .sidebar-text,
+            .sidebar-collapsed .sidebar-logo-text,
+            .sidebar-collapsed .sidebar-badge { display: none; }
+            .sidebar-collapsed aside .p-8 { padding: 1.5rem 0; text-align: center; }
+            .sidebar-collapsed .sidebar-link { justify-content: center; padding: 1rem 0; }
+            .sidebar-collapsed .sidebar-link i { margin-right: 0; width: auto; font-size: 1.25rem; }
+            .sidebar-collapsed #sidebarToggle i { transform: rotate(180deg); }
+        }
+        
+        @media (max-width: 1024px) {
+            aside { transform: translateX(-100%); }
+            .sidebar-mobile-open aside { transform: translateX(0); }
+            main { margin-left: 0 !important; }
+            .sidebar-overlay { display: none; }
+            .sidebar-mobile-open .sidebar-overlay { display: block; }
+        }
     </style>
 </head>
 <body class="bg-canvas font-sans text-primary">
@@ -92,61 +114,77 @@
     </div>
 
     <!-- Main Dashboard Layout -->
-    <div id="dashboard" class="hidden min-h-screen flex">
+    <div id="dashboard" class="hidden min-h-screen flex sidebar-transition">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div onclick="toggleMobileSidebar()" class="sidebar-overlay fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 lg:hidden"></div>
+
         <!-- Sidebar -->
-        <aside class="w-72 bg-sidebar text-white flex flex-col fixed inset-y-0 left-0 shadow-2xl z-40">
-            <div class="p-8 border-b border-white/5">
-                <h1 class="font-montserrat text-xl font-bold uppercase">Goddy<span class="text-secondary">Graphix</span></h1>
-                <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mt-1">Control Center</p>
+        <aside id="adminSidebar" class="w-72 bg-sidebar text-white flex flex-col fixed inset-y-0 left-0 shadow-2xl z-40 sidebar-transition">
+            <!-- Toggle Button (Desktop) -->
+            <button id="sidebarToggle" onclick="toggleSidebar()" class="hidden lg:flex absolute -right-3 top-10 bg-secondary text-primary w-6 h-6 rounded-full items-center justify-center shadow-lg hover:scale-110 transition z-50">
+                <i class="fas fa-chevron-left text-[10px]" id="toggleIcon"></i>
+            </button>
+
+            <div class="p-8 border-b border-white/5 flex-shrink-0">
+                <h1 class="font-montserrat text-xl font-bold uppercase truncate">
+                    <span class="sidebar-logo-icon text-secondary">G</span><span class="sidebar-logo-text">oddy<span class="text-secondary">Graphix</span></span>
+                </h1>
+                <p class="sidebar-logo-text text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mt-1">Control Center</p>
             </div>
             
-            <nav class="flex-grow p-4 mt-4 space-y-2">
+            <nav class="flex-grow p-4 mt-4 space-y-2 overflow-y-auto custom-scrollbar">
                 <button onclick="switchTab('overview')" id="tab-overview" class="sidebar-link active w-full flex items-center p-4 rounded-xl transition group">
                     <i class="fas fa-chart-line w-8"></i>
-                    <span class="text-sm font-semibold">Overview</span>
+                    <span class="sidebar-text text-sm font-semibold">Overview</span>
                 </button>
                 <button onclick="switchTab('portfolio')" id="tab-portfolio" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
                     <i class="fas fa-layer-group w-8"></i>
-                    <span class="text-sm font-semibold">Portfolio</span>
+                    <span class="sidebar-text text-sm font-semibold">Portfolio</span>
                 </button>
                 <button onclick="switchTab('services')" id="tab-services" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
                     <i class="fas fa-briefcase w-8"></i>
-                    <span class="text-sm font-semibold">Services</span>
+                    <span class="sidebar-text text-sm font-semibold">Services</span>
                 </button>
                 <button onclick="switchTab('testimonials')" id="tab-testimonials" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
                     <i class="fas fa-comment-dots w-8"></i>
-                    <span class="text-sm font-semibold">Testimonials</span>
-                    <span id="pendingTestimonialsBadge" class="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                    <span class="sidebar-text text-sm font-semibold">Testimonials</span>
+                    <span id="pendingTestimonialsBadge" class="sidebar-badge ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
                 </button>
                 <button onclick="switchTab('requests')" id="tab-requests" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
                     <i class="fas fa-envelope-open-text w-8"></i>
-                    <span class="text-sm font-semibold">Requests</span>
+                    <span class="sidebar-text text-sm font-semibold">Requests</span>
                 </button>
                 <button onclick="switchTab('settings')" id="tab-settings" class="sidebar-link w-full flex items-center p-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition group">
                     <i class="fas fa-cog w-8"></i>
-                    <span class="text-sm font-semibold">Settings</span>
+                    <span class="sidebar-text text-sm font-semibold">Settings</span>
                 </button>
             </nav>
 
-            <div class="p-4 border-t border-white/5">
+            <div class="p-4 border-t border-white/5 flex-shrink-0">
                 <a href="index.html" target="_blank" class="w-full flex items-center p-4 text-gray-400 hover:text-secondary transition">
                     <i class="fas fa-external-link-alt w-8"></i>
-                    <span class="text-xs font-bold uppercase">View Site</span>
+                    <span class="sidebar-text text-xs font-bold uppercase">View Site</span>
                 </a>
                 <button id="logoutBtn" class="w-full flex items-center p-4 text-red-400 hover:bg-red-500/10 rounded-xl transition">
                     <i class="fas fa-power-off w-8"></i>
-                    <span class="text-xs font-bold uppercase tracking-widest">Logout</span>
+                    <span class="sidebar-text text-xs font-bold uppercase tracking-widest ml-0">Logout</span>
                 </button>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-grow ml-72 p-8">
+        <main id="mainContent" class="flex-grow ml-72 p-8 sidebar-transition min-w-0">
             <!-- Header -->
-            <header class="flex justify-between items-center mb-10">
-                <div>
-                    <h2 id="pageTitle" class="text-3xl font-extrabold font-montserrat uppercase tracking-tight">Overview</h2>
-                    <p class="text-gray-500 text-sm mt-1">Welcome back, Admin. System is running optimally.</p>
+            <header class="flex justify-between items-center mb-10 bg-canvas/80 backdrop-blur-md sticky top-0 z-20 py-4">
+                <div class="flex items-center">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileSidebar()" class="lg:hidden text-primary text-2xl mr-4 hover:text-secondary transition">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h2 id="pageTitle" class="text-2xl md:text-3xl font-extrabold font-montserrat uppercase tracking-tight">Overview</h2>
+                        <p class="text-gray-500 text-xs md:text-sm mt-1">Welcome back, Admin. System is running optimally.</p>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="text-right">
@@ -562,6 +600,20 @@
     </div>
 
     <script>
+        // Sidebar State
+        let isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isSidebarCollapsed) document.body.classList.add('sidebar-collapsed');
+
+        function toggleSidebar() {
+            isSidebarCollapsed = !isSidebarCollapsed;
+            document.body.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('sidebarCollapsed', isSidebarCollapsed);
+        }
+
+        function toggleMobileSidebar() {
+            document.body.classList.toggle('sidebar-mobile-open');
+        }
+
         // State Management
         let currentTab = 'overview';
         
