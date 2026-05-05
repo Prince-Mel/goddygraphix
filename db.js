@@ -7,16 +7,18 @@ const connectionConfig = process.env.MYSQL_URL || {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'goddygraphix',
     port: process.env.DB_PORT || 3306,
-    ssl: (process.env.DB_SSL === 'true' || process.env.MYSQL_URL?.includes('sslmode=require')) 
-         ? { rejectUnauthorized: false } 
-         : null
+    ssl: { rejectUnauthorized: false } // Always try SSL for production
 };
 
-const pool = mysql.createPool({
-    ... (typeof connectionConfig === 'string' ? { uri: connectionConfig } : connectionConfig),
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+console.log(`[DB] Attempting connection via ${process.env.MYSQL_URL ? 'MYSQL_URL' : 'Standard Config'}`);
+
+const pool = process.env.MYSQL_URL 
+    ? mysql.createPool(process.env.MYSQL_URL) 
+    : mysql.createPool({
+        ...connectionConfig,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+    });
 
 module.exports = pool;
