@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(youtu.be)",
+      "WebFetch(dashboard.emailjs.com)",
+      "Bash(pip install *)",
+      "Bash(start *)",
+      "Bash(node *)",
+      "Bash(curl *)",
+      "Bash(mysql *)",
+      "Bash(net *)",
+      "Bash(\"c:\\xampp\\mysql\\bin\\mysql_start.bat\")",
+      "Bash(\"c:\\xampp\\mysql\\bin\\mysqld.exe\" *)",
+      "Bash(\"c:\\xampp\\mysql\\bin\\mysql.exe\" *)",
+      "Bash(mysql.exe *)",
+      "Bash(taskkill *)",
+      "Bash(type *)",
+      "Bash(findstr *)",
+      "Bash(set)",
+      "Bash(tasklist)",
+      "Bash(netstat *)",
+      "Bash(dir *)",
+      "Bash(cmd *)",
+      "Bash(flush *)",
+      "Bash(\"\")",
+      "Bash(grant *)",
+      "Bash(npm start)",
+      "Bash(timeout *)",
+      "Bash(sc *)"
+    ]
+  },
+  "$version": 3
+}

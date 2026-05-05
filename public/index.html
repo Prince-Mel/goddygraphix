@@ -696,6 +696,11 @@
     </div>
 
     <script>
+        // API Configuration
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? '' 
+            : 'https://your-backend-url.onrender.com'; // TODO: Update after Render deployment
+
         // Modal functions
         function openPortfolioModal(item) {
             document.getElementById('modalImage').src = item.image_url;
@@ -774,7 +779,7 @@
             showPage('home');
             
             // Fetch Settings (Announcement)
-            fetch('/api/settings')
+            fetch(API_URL + '/api/settings')
                 .then(res => res.json())
                 .then(settings => {
                     const bar = document.getElementById('announcement-bar');
@@ -857,7 +862,7 @@
             });
 
             // Dynamic Services Loading
-            fetch('/api/services')
+            fetch(API_URL + '/api/services')
                 .then(response => response.json())
                 .then(services => {
                     const grid = document.getElementById('services-grid');
@@ -926,7 +931,7 @@
                 });
 
             // Dynamic Portfolio Loading
-            fetch('/api/portfolio')
+            fetch(API_URL + '/api/portfolio')
                 .then(response => response.json())
                 .then(items => {
                     // Filter out hidden items (extra safety for admins viewing public site)
@@ -970,7 +975,7 @@
                         message: document.getElementById('message').value
                     };
 
-                    fetch('/api/requests', {
+                    fetch(API_URL + '/api/requests', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1018,7 +1023,7 @@
 
             window.fetchTestimonials = async function() {
                 try {
-                    const response = await fetch('/api/testimonials');
+                    const response = await fetch(API_URL + '/api/testimonials');
                     allTestimonials = await response.json();
                     renderTestimonials();
                 } catch (err) {
@@ -1124,7 +1129,7 @@
                 }
 
                 try {
-                    const response = await fetch('/api/testimonials', {
+                    const response = await fetch(API_URL + '/api/testimonials', {
                         method: 'POST',
                         body: formData
                     });

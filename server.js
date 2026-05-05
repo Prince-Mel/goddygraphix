@@ -17,11 +17,24 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { spawn } = require('child_process'); // For Python email automation
 const pool = require('./db'); // MySQL Connection
-const { upload } = require('./cloudinary'); // Local File Uploads
+const { upload, uploadToImageKit } = require('./imagekit'); // ImageKit Hosting
+const cors = require('cors');
 
 const app = express();
+
+// --- Configuration & Constants ---
 const port = process.env.PORT || 3000;
 const COOKIE_SECRET = process.env.COOKIE_SECRET || 'your-very-secure-random-secret-key-123';
+
+// EmailJS Configuration
+const EMAILJS_CONFIG = {
+    publicKey: process.env.EMAILJS_PUBLIC_KEY,
+    serviceId: process.env.EMAILJS_SERVICE_ID,
+    businessTemplateId: process.env.EMAILJS_BUSINESS_TEMPLATE_ID,
+    customerTemplateId: process.env.EMAILJS_CUSTOMER_TEMPLATE_ID,
+    businessmanEmail: process.env.BUSINESSMAN_EMAIL || 'laryeamel06@gmail.com',
+    apiUrl: "https://api.emailjs.com/api/v1.0/email/send"
+};
 
 // Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));
@@ -155,28 +168,24 @@ initDb();
 
 // --- Notification Helpers ---
 
-// Python Email Automation (EmailJS)
-const sendPythonEmails = (request) => {
-    if (!process.env.PYTHON_EMAIL_AUTOMATION || process.env.PYTHON_EMAIL_AUTOMATION !== 'true') {
-        console.log("[PYTHON EMAIL] Disabled — set PYTHON_EMAIL_AUTOMATION=true in .env to enable");
-        return;
+// EmailJS REST API Helper (Replaces Python script)
+const sendEmailJS = async (templateId, templateParams) => {
+    try {
+        const payload = {
+            service_id: EMAILJS_CONFIG.serviceId,
+            template_id: templateId,
+            user_id: EMAILJS_CONFIG.publicKey,
+            template_params: templateParams,
+        };
+
+        const response = await axios.post(EMAILJS_CONFIG.apiUrl, payload, {
+            headers: { "Content-Type": "application/json" }
+        });
+        return { success: true, status: response.status, data: response.data };
+    } catch (err) {
+        console.error(`[EMAILJS ERROR] Template ${templateId}:`, err.response?.data || err.message);
+        return { success: false, error: err.message };
     }
-
-    const pythonUrl = process.env.PYTHON_EMAIL_URL || 'http://localhost:5000/send-emails';
-
-    axios.post(pythonUrl, {
-        name: request.name,
-        email: request.email,
-        phone: request.phone,
-        service: request.service,
-        subject: request.subject,
-        message: request.message,
-        created_at: request.created_at || new Date().toISOString()
-    }).then(res => {
-        console.log("[PYTHON EMAIL] Both emails sent successfully!");
-    }).catch(err => {
-        console.error("[PYTHON EMAIL] Error:", err.message);
-    });
 };
 
 const sendNotifications = async (request) => {
@@ -196,11 +205,9 @@ const sendNotifications = async (request) => {
             text: text,
             parse_mode: 'Markdown'
         }).catch(err => console.error("[NOTIFY] Telegram Error:", err.message));
-    } else {
-        console.warn("[NOTIFY] Telegram credentials missing. Skipping Telegram alert.");
     }
 
-    // 2. Email Notification (Nodemailer)
+    // 2. Email Notification (Nodemailer - Direct)
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -220,14 +227,38 @@ const sendNotifications = async (request) => {
         transporter.sendMail(mailOptions).catch(err => console.error("[NOTIFY] Email Error:", err));
     }
 
-    // 3. Python Email Automation (EmailJS — Businessman + Customer)
-    sendPythonEmails(request);
+    // 3. EmailJS Automation (Node.js Implementation)
+    // Send to Businessman
+    sendEmailJS(EMAILJS_CONFIG.businessTemplateId, {
+        to_email: EMAILJS_CONFIG.businessmanEmail,
+        name: request.name,
+        email: request.email,
+        phone: request.phone || 'N/A',
+        service: request.service,
+        subject: request.subject || 'New Contact Request',
+        message: request.message,
+        date: request.created_at || new Date().toISOString()
+    });
+
+    // Send Auto-reply to Customer
+    sendEmailJS(EMAILJS_CONFIG.customerTemplateId, {
+        to_email: request.email,
+        to_name: request.name,
+        subject: `Re: ${request.subject || 'Your Inquiry'}`,
+        message: `Dear ${request.name},\n\nThank you for contacting Goddy Graphix! We have received your inquiry regarding "${request.service}" and will get back to you shortly.\n\nBest regards,\nGoddy Graphix Team`
+    });
 };
 
 // Security Middleware
 app.use(helmet({
     contentSecurityPolicy: false, // Disable CSP to avoid issues with external CDNs
 }));
+// CORS Configuration for Vercel Frontend
+app.use(cors({
+    origin: process.env.FRONTEND_URL || '*', 
+    credentials: true
+}));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser(COOKIE_SECRET)); // Use signed cookies
@@ -378,8 +409,8 @@ app.get('/api/portfolio', async (req, res) => {
 app.post('/api/portfolio', requireAuth, upload.single('image'), async (req, res) => {
     try {
         const { title, category, description } = req.body;
-        // Store relative path for local files
-        const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
+        // Upload to ImageKit
+        const imageUrl = req.file ? await uploadToImageKit(req.file) : '';
 
         if (!title || !category || !imageUrl) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -459,7 +490,7 @@ app.get('/api/services', async (req, res) => {
 app.post('/api/services', requireAuth, upload.single('image'), async (req, res) => {
     try {
         const { name, description, long_description, price_type, price_min, price_max, visible } = req.body;
-        const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
+        const imageUrl = req.file ? await uploadToImageKit(req.file) : '';
 
         if (!name || !description) {
             return res.status(400).json({ error: 'Name and description are required' });
@@ -489,7 +520,7 @@ app.put('/api/services/:id', requireAuth, upload.single('image'), async (req, re
     try {
         const id = parseInt(req.params.id);
         const { name, description, long_description, price_type, price_min, price_max, visible } = req.body;
-        const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+        const imageUrl = req.file ? await uploadToImageKit(req.file) : null;
 
         if (!name || !description) {
             return res.status(400).json({ error: 'Name and description are required' });
@@ -575,7 +606,7 @@ app.post('/api/testimonials', upload.single('project_file'), contactLimiter, asy
         let isPdf = false;
         
         if (req.file) {
-            fileUrl = `/uploads/${req.file.filename}`;
+            fileUrl = await uploadToImageKit(req.file);
             isPdf = req.file.mimetype === 'application/pdf';
         }
 
@@ -605,7 +636,8 @@ app.put('/api/testimonials/:id', requireAuth, upload.single('project_file'), asy
 
         if (req.file) {
             query += ", file_url = ?, is_pdf = ?";
-            params.push(`/uploads/${req.file.filename}`, req.file.mimetype === 'application/pdf');
+            const uploadedUrl = await uploadToImageKit(req.file);
+            params.push(uploadedUrl, req.file.mimetype === 'application/pdf');
         }
 
         query += " WHERE id = ?";

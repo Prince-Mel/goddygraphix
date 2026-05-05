@@ -600,6 +600,11 @@
     </div>
 
     <script>
+        // API Configuration
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? '' 
+            : 'https://your-backend-url.onrender.com'; // TODO: Update after Render deployment
+
         // Sidebar State
         let isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         if (isSidebarCollapsed) document.body.classList.add('sidebar-collapsed');
@@ -694,7 +699,7 @@
         // Auth Check
         async function checkAuth() {
             try {
-                const res = await fetch('/api/auth/check');
+                const res = await fetch(API_URL + '/api/auth/check');
                 const data = await res.json();
                 document.getElementById('loadingOverlay').classList.add('hidden');
                 if (data.authenticated) {
@@ -721,7 +726,7 @@
             err.classList.add('hidden');
 
             try {
-                const res = await fetch('/api/login', {
+                const res = await fetch(API_URL + '/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -747,7 +752,7 @@
 
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', async () => {
-            await fetch('/api/logout', { method: 'POST' });
+            await fetch(API_URL + '/api/logout', { method: 'POST' });
             window.location.reload();
         });
 
@@ -761,10 +766,10 @@
         async function updateStats() {
             try {
                 const [pRes, rRes, sRes, tRes] = await Promise.all([
-                    fetch('/api/portfolio'),
-                    fetch('/api/requests'),
-                    fetch('/api/services'),
-                    fetch('/api/testimonials')
+                    fetch(API_URL + '/api/portfolio'),
+                    fetch(API_URL + '/api/requests'),
+                    fetch(API_URL + '/api/services'),
+                    fetch(API_URL + '/api/testimonials')
                 ]);
                 const p = await pRes.json();
                 const r = await rRes.json();
@@ -793,7 +798,7 @@
             list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
             
             try {
-                const res = await fetch('/api/portfolio');
+                const res = await fetch(API_URL + '/api/portfolio');
                 const items = await res.json();
                 
                 if (items.length === 0) {
@@ -830,7 +835,7 @@
 
         async function toggleVisibility(id, visible) {
             try {
-                const res = await fetch(`/api/portfolio/${id}/visibility`, {
+                const res = await fetch(API_URL + `/api/portfolio/${id}/visibility`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ visible })
