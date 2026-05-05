@@ -1,11 +1,3 @@
-// Clear system env vars that override .env
-delete process.env.DB_HOST;
-delete process.env.DB_USER;
-delete process.env.DB_PASSWORD;
-delete process.env.DB_NAME;
-delete process.env.DB_PORT;
-delete process.env.DB_SSL;
-
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
