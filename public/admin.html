@@ -776,6 +776,15 @@
                 const r = await rRes.json();
                 const s = await sRes.json();
                 const t = await tRes.json();
+
+                // If any critical endpoint returns an error, it's likely a session issue
+                if (p.error || r.error || s.error || t.error) {
+                    console.warn("Session issue detected, resetting view...");
+                    document.getElementById('dashboard').classList.add('hidden');
+                    document.getElementById('loginWrapper').classList.remove('hidden');
+                    return;
+                }
+
                 document.getElementById('stat-portfolio').innerText = p.filter(i => i.visible !== false).length;
                 document.getElementById('stat-requests').innerText = r.length;
                 document.getElementById('stat-services').innerText = s.filter(i => i.visible).length;
