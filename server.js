@@ -148,6 +148,14 @@ const initDb = async () => {
             console.log("[DB] 6 default services seeded.");
         }
 
+        try {
+            await connection.query("ALTER TABLE requests MODIFY id INT AUTO_INCREMENT");
+            await connection.query("ALTER TABLE testimonials MODIFY id INT AUTO_INCREMENT");
+            await connection.query("ALTER TABLE services MODIFY id INT AUTO_INCREMENT");
+            await connection.query("ALTER TABLE users MODIFY id INT AUTO_INCREMENT");
+            await connection.query("ALTER TABLE portfolio MODIFY id INT AUTO_INCREMENT");
+        } catch(e) { console.log("[DB] Alter tables ignored:", e.message); }
+
         connection.release();
         console.log("[DB] Database initialized successfully.");
     } catch (err) {
