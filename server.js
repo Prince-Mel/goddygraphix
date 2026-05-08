@@ -745,6 +745,25 @@ app.delete('/api/requests/:id', requireAuth, async (req, res) => {
     }
 });
 
+// --- Fix DB endpoint (debug) ---
+app.get('/api/fix-db', async (req, res) => {
+    try {
+        const results = [];
+        const tables = ['requests', 'testimonials', 'services', 'users', 'portfolio'];
+        for (const t of tables) {
+            try {
+                await pool.query(`ALTER TABLE ${t} MODIFY id INT AUTO_INCREMENT`);
+                results.push({ table: t, status: 'success' });
+            } catch (e) {
+                results.push({ table: t, error: e.message });
+            }
+        }
+        res.json({ results });
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+});
+
 // --- Migration status endpoint (debug) ---
 app.get('/api/migration-status', async (req, res) => {
   try {
