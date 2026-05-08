@@ -699,7 +699,7 @@
         // Auth Check
         async function checkAuth() {
             try {
-                const res = await fetch(API_URL + '/api/auth/check');
+                const res = await fetch(API_URL + '/api/auth/check', { credentials: 'include' });
                 const data = await res.json();
                 document.getElementById('loadingOverlay').classList.add('hidden');
                 if (data.authenticated) {
@@ -728,6 +728,7 @@
             try {
                 const res = await fetch(API_URL + '/api/login', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
@@ -752,7 +753,7 @@
 
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', async () => {
-            await fetch(API_URL + '/api/logout', { method: 'POST' });
+            await fetch(API_URL + '/api/logout', { method: 'POST', credentials: 'include' });
             window.location.reload();
         });
 
@@ -766,10 +767,10 @@
         async function updateStats() {
             try {
                 const [pRes, rRes, sRes, tRes] = await Promise.all([
-                    fetch(API_URL + '/api/portfolio'),
-                    fetch(API_URL + '/api/requests'),
-                    fetch(API_URL + '/api/services'),
-                    fetch(API_URL + '/api/testimonials')
+                    fetch(API_URL + '/api/portfolio', { credentials: 'include' }),
+                    fetch(API_URL + '/api/requests', { credentials: 'include' }),
+                    fetch(API_URL + '/api/services', { credentials: 'include' }),
+                    fetch(API_URL + '/api/testimonials', { credentials: 'include' })
                 ]);
                 const p = await pRes.json();
                 const r = await rRes.json();
@@ -798,7 +799,7 @@
             list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
             
             try {
-                const res = await fetch(API_URL + '/api/portfolio');
+                const res = await fetch(API_URL + '/api/portfolio', { credentials: 'include' });
                 const items = await res.json();
                 
                 if (items.length === 0) {
@@ -837,6 +838,7 @@
             try {
                 const res = await fetch(API_URL + `/api/portfolio/${id}/visibility`, {
                     method: 'PATCH',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ visible })
                 });
@@ -857,7 +859,7 @@
             list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
             
             try {
-                const res = await fetch(API_URL + '/api/requests');
+                const res = await fetch(API_URL + '/api/requests', { credentials: 'include' });
                 const requests = await res.json();
 
                 if (requests.length === 0) {
@@ -907,7 +909,7 @@
         // Settings Management
         async function loadSettings() {
             try {
-                const res = await fetch(API_URL + '/api/settings');
+                const res = await fetch(API_URL + '/api/settings', { credentials: 'include' });
                 const data = await res.json();
                 document.getElementById('announcementText').value = data.announcement || "";
                 document.getElementById('showAnnouncement').checked = data.showAnnouncement;
@@ -928,6 +930,7 @@
             try {
                 const res = await fetch(API_URL + '/api/settings', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
@@ -958,6 +961,7 @@
                 try {
                     const res = await fetch(API_URL + '/api/profile', {
                         method: 'POST',
+                        credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
                     });
@@ -966,7 +970,7 @@
                     if (res.ok) {
                         showFeedback('profileFeedback', 'Profile updated! Logging out...');
                         setTimeout(async () => {
-                            await fetch(API_URL + '/api/logout', { method: 'POST' });
+                            await fetch(API_URL + '/api/logout', { method: 'POST', credentials: 'include' });
                             window.location.reload();
                         }, 1500);
                     } else {
@@ -1003,7 +1007,7 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Publishing...';
 
             try {
-                const res = await fetch(API_URL + '/api/portfolio', { method: 'POST', body: formData });
+                const res = await fetch(API_URL + '/api/portfolio', { method: 'POST', credentials: 'include', body: formData });
                 if (res.ok) {
                     alert('Success! Project is now live.');
                     e.target.reset();
@@ -1024,13 +1028,13 @@
         // Generic Delete
         async function deleteItem(id) {
             if (confirm('Permanently remove this project from portfolio?')) {
-                await fetch(API_URL + `/api/portfolio/${id}`, { method: 'DELETE' });
+                await fetch(API_URL + `/api/portfolio/${id}`, { method: 'DELETE', credentials: 'include' });
                 loadPortfolioItems();
             }
         }
         async function deleteRequest(id) {
             if (confirm('Dismiss and delete this client request?')) {
-                await fetch(API_URL + `/api/requests/${id}`, { method: 'DELETE' });
+                await fetch(API_URL + `/api/requests/${id}`, { method: 'DELETE', credentials: 'include' });
                 loadRequests();
             }
         }
@@ -1043,7 +1047,7 @@
             list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
 
             try {
-                const res = await fetch(API_URL + '/api/services');
+                const res = await fetch(API_URL + '/api/services', { credentials: 'include' });
                 const services = await res.json();
 
                 document.getElementById('services-count-tag').innerText = `${services.length} Services`;
@@ -1087,7 +1091,7 @@
 
         // Edit Service - populate form
         async function editService(id) {
-            const res = await fetch(API_URL + '/api/services');
+            const res = await fetch(API_URL + '/api/services', { credentials: 'include' });
             const services = await res.json();
             const svc = services.find(s => s.id === id);
             if (!svc) return;
@@ -1174,7 +1178,7 @@
             try {
                 const url = isEdit ? API_URL + `/api/services/${editId}` : API_URL + '/api/services';
                 const method = isEdit ? 'PUT' : 'POST';
-                const res = await fetch(url, { method, body: formData });
+                const res = await fetch(url, { method, credentials: 'include', body: formData });
                 const data = await res.json();
 
                 if (res.ok) {
@@ -1199,6 +1203,7 @@
             try {
                 const res = await fetch(API_URL + `/api/services/${id}/visibility`, {
                     method: 'PATCH',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ visible })
                 });
@@ -1217,7 +1222,7 @@
         async function deleteService(id) {
             if (confirm('Permanently delete this service?')) {
                 try {
-                    const res = await fetch(API_URL + `/api/services/${id}`, { method: 'DELETE' });
+                    const res = await fetch(API_URL + `/api/services/${id}`, { method: 'DELETE', credentials: 'include' });
                     if (res.ok) {
                         resetServiceForm();
                         loadServices();
@@ -1235,7 +1240,7 @@
             tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center"><i class="fas fa-circle-notch fa-spin text-2xl text-purple-400"></i></td></tr>';
 
             try {
-                const res = await fetch(API_URL + '/api/testimonials');
+                const res = await fetch(API_URL + '/api/testimonials', { credentials: 'include' });
                 const items = await res.json();
 
                 if (items.length === 0) {
@@ -1362,6 +1367,7 @@
             try {
                 const res = await fetch(API_URL + `/api/testimonials/${currentReviewTestimony.id}`, {
                     method: 'PATCH',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ approved: true, visible: true })
                 });
@@ -1375,6 +1381,7 @@
             try {
                 const res = await fetch(API_URL + `/api/testimonials/${currentReviewTestimony.id}`, {
                     method: 'PATCH',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ approved: false, visible: false })
                 });
@@ -1386,7 +1393,7 @@
         async function adminDeleteTestimony(id) {
             if (!confirm('Permanently delete this testimony? This cannot be undone.')) return;
             try {
-                const res = await fetch(API_URL + `/api/testimonials/${id}`, { method: 'DELETE' });
+                const res = await fetch(API_URL + `/api/testimonials/${id}`, { method: 'DELETE', credentials: 'include' });
                 const data = await res.json();
                 if (data.success) loadAdminTestimonials();
             } catch (err) { console.error(err); }
@@ -1427,7 +1434,7 @@
             if (fileInput.files[0]) formData.append('project_file', fileInput.files[0]);
 
             try {
-                const res = await fetch(API_URL + `/api/testimonials/${adminEditTestimonyId}`, { method: 'PUT', body: formData });
+                const res = await fetch(API_URL + `/api/testimonials/${adminEditTestimonyId}`, { method: 'PUT', credentials: 'include', body: formData });
                 const data = await res.json();
                 if (data.success) {
                     closeAdminTestimonyEditModal();
