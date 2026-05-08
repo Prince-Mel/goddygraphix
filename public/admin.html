@@ -857,7 +857,7 @@
             list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
             
             try {
-                const res = await fetch('/api/requests');
+                const res = await fetch(API_URL + '/api/requests');
                 const requests = await res.json();
 
                 if (requests.length === 0) {
@@ -907,7 +907,7 @@
         // Settings Management
         async function loadSettings() {
             try {
-                const res = await fetch('/api/settings');
+                const res = await fetch(API_URL + '/api/settings');
                 const data = await res.json();
                 document.getElementById('announcementText').value = data.announcement || "";
                 document.getElementById('showAnnouncement').checked = data.showAnnouncement;
@@ -926,7 +926,7 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Updating...';
 
             try {
-                const res = await fetch('/api/settings', {
+                const res = await fetch(API_URL + '/api/settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -956,7 +956,7 @@
                 btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Saving...';
                 
                 try {
-                    const res = await fetch('/api/profile', {
+                    const res = await fetch(API_URL + '/api/profile', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -966,7 +966,7 @@
                     if (res.ok) {
                         showFeedback('profileFeedback', 'Profile updated! Logging out...');
                         setTimeout(async () => {
-                            await fetch('/api/logout', { method: 'POST' });
+                            await fetch(API_URL + '/api/logout', { method: 'POST' });
                             window.location.reload();
                         }, 1500);
                     } else {
@@ -1003,7 +1003,7 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Publishing...';
 
             try {
-                const res = await fetch('/api/portfolio', { method: 'POST', body: formData });
+                const res = await fetch(API_URL + '/api/portfolio', { method: 'POST', body: formData });
                 if (res.ok) {
                     alert('Success! Project is now live.');
                     e.target.reset();
@@ -1024,13 +1024,13 @@
         // Generic Delete
         async function deleteItem(id) {
             if (confirm('Permanently remove this project from portfolio?')) {
-                await fetch(`/api/portfolio/${id}`, { method: 'DELETE' });
+                await fetch(API_URL + `/api/portfolio/${id}`, { method: 'DELETE' });
                 loadPortfolioItems();
             }
         }
         async function deleteRequest(id) {
             if (confirm('Dismiss and delete this client request?')) {
-                await fetch(`/api/requests/${id}`, { method: 'DELETE' });
+                await fetch(API_URL + `/api/requests/${id}`, { method: 'DELETE' });
                 loadRequests();
             }
         }
@@ -1043,7 +1043,7 @@
             list.innerHTML = '<div class="p-20 text-center"><i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i></div>';
 
             try {
-                const res = await fetch('/api/services');
+                const res = await fetch(API_URL + '/api/services');
                 const services = await res.json();
 
                 document.getElementById('services-count-tag').innerText = `${services.length} Services`;
@@ -1087,7 +1087,7 @@
 
         // Edit Service - populate form
         async function editService(id) {
-            const res = await fetch('/api/services');
+            const res = await fetch(API_URL + '/api/services');
             const services = await res.json();
             const svc = services.find(s => s.id === id);
             if (!svc) return;
@@ -1172,7 +1172,7 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Saving...';
 
             try {
-                const url = isEdit ? `/api/services/${editId}` : '/api/services';
+                const url = isEdit ? API_URL + `/api/services/${editId}` : API_URL + '/api/services';
                 const method = isEdit ? 'PUT' : 'POST';
                 const res = await fetch(url, { method, body: formData });
                 const data = await res.json();
@@ -1197,7 +1197,7 @@
         // Toggle Service Visibility
         async function toggleServiceVisibility(id, visible) {
             try {
-                const res = await fetch(`/api/services/${id}/visibility`, {
+                const res = await fetch(API_URL + `/api/services/${id}/visibility`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ visible })
@@ -1217,7 +1217,7 @@
         async function deleteService(id) {
             if (confirm('Permanently delete this service?')) {
                 try {
-                    const res = await fetch(`/api/services/${id}`, { method: 'DELETE' });
+                    const res = await fetch(API_URL + `/api/services/${id}`, { method: 'DELETE' });
                     if (res.ok) {
                         resetServiceForm();
                         loadServices();
@@ -1235,7 +1235,7 @@
             tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center"><i class="fas fa-circle-notch fa-spin text-2xl text-purple-400"></i></td></tr>';
 
             try {
-                const res = await fetch('/api/testimonials');
+                const res = await fetch(API_URL + '/api/testimonials');
                 const items = await res.json();
 
                 if (items.length === 0) {
@@ -1360,7 +1360,7 @@
         async function reviewApprove() {
             if (!currentReviewTestimony) return;
             try {
-                const res = await fetch(`/api/testimonials/${currentReviewTestimony.id}`, {
+                const res = await fetch(API_URL + `/api/testimonials/${currentReviewTestimony.id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ approved: true, visible: true })
@@ -1373,7 +1373,7 @@
         async function reviewDisapprove() {
             if (!currentReviewTestimony) return;
             try {
-                const res = await fetch(`/api/testimonials/${currentReviewTestimony.id}`, {
+                const res = await fetch(API_URL + `/api/testimonials/${currentReviewTestimony.id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ approved: false, visible: false })
@@ -1386,7 +1386,7 @@
         async function adminDeleteTestimony(id) {
             if (!confirm('Permanently delete this testimony? This cannot be undone.')) return;
             try {
-                const res = await fetch(`/api/testimonials/${id}`, { method: 'DELETE' });
+                const res = await fetch(API_URL + `/api/testimonials/${id}`, { method: 'DELETE' });
                 const data = await res.json();
                 if (data.success) loadAdminTestimonials();
             } catch (err) { console.error(err); }
@@ -1427,7 +1427,7 @@
             if (fileInput.files[0]) formData.append('project_file', fileInput.files[0]);
 
             try {
-                const res = await fetch(`/api/testimonials/${adminEditTestimonyId}`, { method: 'PUT', body: formData });
+                const res = await fetch(API_URL + `/api/testimonials/${adminEditTestimonyId}`, { method: 'PUT', body: formData });
                 const data = await res.json();
                 if (data.success) {
                     closeAdminTestimonyEditModal();

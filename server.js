@@ -469,7 +469,8 @@ app.get('/api/services', async (req, res) => {
             ...row,
             visible: !!row.visible,
             price_min: row.price_min ? parseFloat(row.price_min) : null,
-            price_max: row.price_max ? parseFloat(row.price_max) : null
+            price_max: row.price_max ? parseFloat(row.price_max) : null,
+            image_url: row.image_url && row.image_url.startsWith('http') ? row.image_url : ''
         }));
         res.json(formatted);
     } catch (err) {
@@ -731,6 +732,27 @@ app.delete('/api/requests/:id', requireAuth, async (req, res) => {
         console.error(err);
         res.status(500).json({ error: "Database error" });
     }
+});
+
+// --- Migration status endpoint (debug) ---
+app.get('/api/migration-status', async (req, res) => {
+  try {
+    const tables = ['users','portfolio','services','testimonials','requests','announcements','registration_requests','materials','assessments','results','enrollments','activity_log','courses'];
+    const placeholders = tables.map(() => '?').join(',');
+    const [rows] = await pool.query(
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN (${placeholders})`,
+      tables
+    );
+    const existing = rows.map(r => r.TABLE_NAME || r.table_name);
+    const status = tables.reduce((acc, tbl) => {
+      acc[tbl] = existing.includes(tbl);
+      return acc;
+    }, {});
+    res.json({ migrationComplete: Object.values(status).every(v => v), tables: status });
+  } catch (err) {
+    console.error('[Migration Status] error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Check Auth Status

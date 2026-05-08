@@ -1,24 +1,36 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const connectionConfig = process.env.MYSQL_URL || {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'goddygraphix',
-    port: process.env.DB_PORT || 3306,
-    ssl: { rejectUnauthorized: false } // Always try SSL for production
-};
+// Ensure MYSQL_URL is defined and non‑empty
+if (!process.env.MYSQL_URL) {
+  console.error('[DB] Critical: MYSQL_URL not set.');
+  throw new Error('Missing MYSQL_URL environment variable');
+}
 
-console.log(`[DB] Attempting connection via ${process.env.MYSQL_URL ? 'MYSQL_URL' : 'Standard Config'}`);
+// Trim any stray whitespace/newlines
+const mysqlUrl = process.env.MYSQL_URL.trim();
 
-const pool = process.env.MYSQL_URL 
-    ? mysql.createPool(process.env.MYSQL_URL) 
-    : mysql.createPool({
-        ...connectionConfig,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0
-    });
+console.log(`[DB] Attempting connection via MYSQL_URL`);
+
+// Create pool using the URL string
+const pool = mysql.createPool({
+  uri: mysqlUrl,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  ssl: { rejectUnauthorized: false }
+});
+
+
+// Simple connection test – logs success or detailed error
+(async () => {
+  try {
+    const conn = await pool.getConnection();
+    console.log('[DB] Connection test successful');
+    conn.release();
+  } catch (err) {
+    console.error('[DB] Connection test failed:', err.message);
+  }
+})();
 
 module.exports = pool;
