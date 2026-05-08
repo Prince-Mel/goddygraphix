@@ -471,7 +471,7 @@ app.get('/api/services', async (req, res) => {
             ...row,
             visible: !!row.visible,
             price_min: row.price_min ? parseFloat(row.price_min) : null,
-            price_max: row.price_max ? parseFloat(row.price_max),
+            price_max: row.price_max ? parseFloat(row.price_max) : null,
             image_url: row.image_url && row.image_url.startsWith('http') ? row.image_url : '',
             raw_image_url: row.image_url // Debugging field
         }));
