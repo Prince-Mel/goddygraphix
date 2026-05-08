@@ -750,8 +750,8 @@ app.get('/api/fix-db', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM requests');
         
-        // Delete rows with id 0 or duplicates that break auto_increment
-        await pool.query('DELETE FROM requests WHERE id = 0');
+        // Truncate table completely to wipe all invalid data and reset auto_increment state
+        await pool.query('TRUNCATE TABLE requests');
         
         // Try altering again
         await pool.query('ALTER TABLE requests MODIFY id INT AUTO_INCREMENT');
