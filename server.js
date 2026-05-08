@@ -748,17 +748,15 @@ app.delete('/api/requests/:id', requireAuth, async (req, res) => {
 // --- Fix DB endpoint (debug) ---
 app.get('/api/fix-db', async (req, res) => {
     try {
-        const results = [];
-        const tables = ['requests', 'testimonials', 'services', 'users', 'portfolio'];
-        for (const t of tables) {
-            try {
-                await pool.query(`ALTER TABLE ${t} MODIFY id INT AUTO_INCREMENT`);
-                results.push({ table: t, status: 'success' });
-            } catch (e) {
-                results.push({ table: t, error: e.message });
-            }
-        }
-        res.json({ results });
+        const [rows] = await pool.query('SELECT * FROM requests');
+        
+        // Delete rows with id 0 or duplicates that break auto_increment
+        await pool.query('DELETE FROM requests WHERE id = 0');
+        
+        // Try altering again
+        await pool.query('ALTER TABLE requests MODIFY id INT AUTO_INCREMENT');
+
+        res.json({ success: true, message: 'Requests table repaired!', data: rows });
     } catch (e) {
         res.json({ error: e.message });
     }
