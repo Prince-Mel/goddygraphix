@@ -710,7 +710,7 @@ app.post('/api/requests', contactLimiter, async (req, res) => {
         res.json({ success: true, message: "Request sent successfully" });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Database error" });
+        res.status(500).json({ error: err.message, stack: err.stack });
     }
 });
 
