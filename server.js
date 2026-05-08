@@ -313,7 +313,8 @@ app.post('/api/login', loginLimiter, async (req, res) => {
             res.cookie('auth', 'true', { 
                 httpOnly: true, 
                 signed: true, 
-                sameSite: 'lax',
+                sameSite: 'none',
+                secure: true,
                 maxAge: 24 * 60 * 60 * 1000 
             });
             res.json({ success: true });
@@ -329,7 +330,12 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
 // Logout
 app.post('/api/logout', (req, res) => {
-    res.clearCookie('auth');
+    res.clearCookie('auth', {
+        httpOnly: true,
+        signed: true,
+        sameSite: 'none',
+        secure: true
+    });
     res.json({ success: true });
 });
 
