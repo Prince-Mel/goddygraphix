@@ -520,8 +520,8 @@ app.post('/api/services', requireAuth, upload.single('image'), async (req, res) 
             visible: String(visible) === 'true'
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
+        console.error("[SERVICES] Post Error:", err);
+        res.status(500).json({ error: err.message || "Database error" });
     }
 });
 
@@ -549,8 +549,8 @@ app.put('/api/services/:id', requireAuth, upload.single('image'), async (req, re
         await pool.query(query, params);
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
+        console.error("[SERVICES] Put Error:", err);
+        res.status(500).json({ error: err.message || "Database error" });
     }
 });
 
@@ -789,10 +789,29 @@ app.get('/api/migration-status', async (req, res) => {
   }
 });
 
-// Check Auth Status
 app.get('/api/auth/check', (req, res) => {
     const isAuthenticated = !!(req.signedCookies && req.signedCookies.auth === 'true');
     res.json({ authenticated: isAuthenticated });
+});
+
+// --- Global Error Handling Middleware ---
+// This catches Multer errors (like file too large) and other unhandled exceptions
+app.use((err, req, res, next) => {
+    console.error('[GLOBAL ERROR]:', err);
+    
+    // Multer Error Handling
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large. Maximum size allowed is 10MB.' });
+    }
+    
+    if (err.message && err.message.includes('Only image and pdf files are allowed')) {
+        return res.status(400).json({ error: err.message });
+    }
+
+    res.status(err.status || 500).json({ 
+        error: err.message || 'An unexpected server error occurred.',
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
 });
 
 app.listen(port, () => {

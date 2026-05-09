@@ -698,8 +698,8 @@
     <script>
         // API Configuration
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '' 
-            : 'https://goddygraphix.onrender.com'; // Production Backend
+            ? 'http://localhost:3000' 
+            : ''; // Production Backend (uses Vercel rewrites)
 
         // Modal functions
         function openPortfolioModal(item) {

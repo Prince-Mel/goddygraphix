@@ -37,16 +37,27 @@ const upload = multer({
 const uploadToImageKit = async (file) => {
     if (!file) return null;
 
+    // Check if ImageKit is configured
+    if (!process.env.IMAGEKIT_PUBLIC_KEY || !process.env.IMAGEKIT_PRIVATE_KEY || !process.env.IMAGEKIT_URL_ENDPOINT) {
+        console.error("[IMAGEKIT] Error: Missing ImageKit configuration in environment variables.");
+        throw new Error("ImageKit hosting is not configured on the server.");
+    }
+
     try {
+        console.log(`[IMAGEKIT] Uploading file: ${file.originalname} (${file.size} bytes)`);
         const response = await imagekit.upload({
             file: file.buffer, // required
-            fileName: `goddygraphix-${Date.now()}-${file.originalname}`, // required
+            fileName: `goddygraphix-${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`, // required
             folder: "/goddygraphix_uploads"
         });
+        console.log("[IMAGEKIT] Upload successful:", response.url);
         return response.url;
     } catch (error) {
-        console.error("[IMAGEKIT] Upload Error:", error);
-        throw error;
+        console.error("[IMAGEKIT] Upload Error:", error.message || error);
+        if (error.message && error.message.includes('Authentication failed')) {
+            throw new Error("ImageKit authentication failed. Please check your keys.");
+        }
+        throw new Error(`ImageKit Upload Failed: ${error.message || 'Unknown error'}`);
     }
 };
 

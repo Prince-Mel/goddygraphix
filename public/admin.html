@@ -602,8 +602,8 @@
     <script>
         // API Configuration
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '' 
-            : 'https://goddygraphix.onrender.com'; // Production Backend
+            ? 'http://localhost:3000' 
+            : ''; // Production Backend (uses Vercel rewrites)
 
         // Sidebar State
         let isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -857,7 +857,7 @@
                     alert('Failed to update visibility. Please check your session.');
                 }
             } catch (err) {
-                console.error(err);
+                console.error('[PORTFOLIO VISIBILITY]:', err);
                 alert('Connection error. Could not update visibility.');
             }
         }
@@ -951,7 +951,8 @@
                     showFeedback('settingsFeedback', result.error || 'Failed to update settings.', true);
                 }
             } catch (err) {
-                showFeedback('settingsFeedback', 'Connection error.', true);
+                console.error('[SETTINGS]:', err);
+                showFeedback('settingsFeedback', 'Connection error. Check your server status.', true);
             }
             btn.disabled = false;
             btn.innerHTML = 'Update Announcement';
@@ -988,7 +989,8 @@
                         btn.innerHTML = 'Update Credentials';
                     }
                 } catch (err) {
-                    showFeedback('profileFeedback', 'Connection error.', true);
+                    console.error('[PROFILE]:', err);
+                    showFeedback('profileFeedback', 'Connection error. Check your server status.', true);
                     btn.disabled = false;
                     btn.innerHTML = 'Update Credentials';
                 }
@@ -1028,6 +1030,7 @@
                     alert('Upload failed: ' + (data.error || 'Unknown error')); 
                 }
             } catch (err) {
+                console.error('[QUICK UPLOAD]:', err);
                 alert('Connection error. Please check your server.');
             }
             btn.disabled = false;
@@ -1198,7 +1201,8 @@
                     showFeedback('serviceFeedback', data.error || 'Failed to save service.', true);
                 }
             } catch (err) {
-                showFeedback('serviceFeedback', 'Connection error.', true);
+                console.error('[ADMIN SERVICE]:', err);
+                showFeedback('serviceFeedback', 'Connection error. Check your internet or server status.', true);
             }
 
             btn.disabled = false;
@@ -1222,7 +1226,7 @@
                     alert('Failed to update visibility. Please check your session.');
                 }
             } catch (err) {
-                console.error(err);
+                console.error('[ADMIN VISIBILITY]:', err);
                 alert('Connection error. Could not update visibility.');
             }
         }
