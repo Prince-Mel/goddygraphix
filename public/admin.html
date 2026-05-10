@@ -1408,21 +1408,42 @@
 
             // Project file
             const projectContainer = document.getElementById('reviewProjectContainer');
+            projectContainer.textContent = '';
             if (t.file_url) {
                 if (t.is_pdf) {
-                    projectContainer.innerHTML = `
-                        <div class="flex flex-col items-center justify-center gap-3 p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                            <i class="fas fa-file-pdf text-red-400 text-5xl"></i>
-                            <p class="text-sm text-gray-500 font-medium">PDF Project File</p>
-                            <a href="${t.file_url}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-lg transition flex items-center gap-2">
-                                <i class="fas fa-external-link-alt"></i> Open PDF
-                            </a>
-                        </div>`;
+                    const div = document.createElement('div');
+                    div.className = 'flex flex-col items-center justify-center gap-3 p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200';
+                    
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-file-pdf text-red-400 text-5xl';
+                    
+                    const p = document.createElement('p');
+                    p.className = 'text-sm text-gray-500 font-medium';
+                    p.textContent = 'PDF Project File';
+                    
+                    const a = document.createElement('a');
+                    a.href = t.file_url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.className = 'px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-lg transition flex items-center gap-2';
+                    a.innerHTML = '<i class="fas fa-external-link-alt"></i> Open PDF';
+                    
+                    div.appendChild(icon);
+                    div.appendChild(p);
+                    div.appendChild(a);
+                    projectContainer.appendChild(div);
                 } else {
-                    projectContainer.innerHTML = `<img src="${t.file_url}" alt="Project" class="w-full max-h-72 object-contain rounded-xl shadow-md bg-gray-50">`;
+                    const img = document.createElement('img');
+                    img.src = t.file_url;
+                    img.alt = 'Project';
+                    img.className = 'w-full max-h-72 object-contain rounded-xl shadow-md bg-gray-50';
+                    projectContainer.appendChild(img);
                 }
             } else {
-                projectContainer.innerHTML = `<div class="flex items-center justify-center p-8 bg-gray-50 rounded-xl text-gray-400 text-sm"><i class="fas fa-image mr-2"></i> No project file attached</div>`;
+                const empty = document.createElement('div');
+                empty.className = 'flex items-center justify-center p-8 bg-gray-50 rounded-xl text-gray-400 text-sm';
+                empty.innerHTML = '<i class="fas fa-image mr-2"></i> No project file attached';
+                projectContainer.appendChild(empty);
             }
 
             // Approve/Disapprove buttons: only show if still pending (not yet actioned)

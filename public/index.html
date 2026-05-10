@@ -1193,10 +1193,19 @@
                 const container = document.getElementById('projectPreviewContainer');
                 container.innerHTML = '';
                 
+                container.textContent = '';
                 if (isPdf) {
-                    container.innerHTML = `<iframe src="${url}#toolbar=0&navpanes=0&scrollbar=0" class="w-full h-full max-w-5xl rounded-lg bg-white" frameborder="0"></iframe>`;
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `${url}#toolbar=0&navpanes=0&scrollbar=0`;
+                    iframe.className = 'w-full h-full max-w-5xl rounded-lg bg-white';
+                    iframe.frameBorder = '0';
+                    container.appendChild(iframe);
                 } else {
-                    container.innerHTML = `<img src="${url}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-fade-in" onclick="event.stopPropagation()">`;
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.className = 'max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-fade-in';
+                    img.onclick = (e) => e.stopPropagation();
+                    container.appendChild(img);
                 }
                 
                 document.getElementById('projectPreviewModal').classList.remove('hidden');
