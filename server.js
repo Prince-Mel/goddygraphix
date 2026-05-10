@@ -8,6 +8,20 @@ const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { spawn } = require('child_process'); // For Python email automation
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+
+const window = new JSDOM('').window;
+const dompurify = createDOMPurify(window);
+
+// Security Helper: Sanitize user input to prevent XSS attacks
+const sanitize = (text) => {
+    if (!text || typeof text !== 'string') return text;
+    return dompurify.sanitize(text, {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'li', 'ol'],
+        ALLOWED_ATTR: ['href', 'target']
+    });
+};
 const pool = require('./db'); // MySQL Connection
 const { upload, uploadToImageKit } = require('./imagekit'); // ImageKit Hosting
 const cors = require('cors');
@@ -282,13 +296,23 @@ const contactLimiter = rateLimit({
 
 // Authentication Middleware
 const requireAuth = (req, res, next) => {
-    const isAuthed = !!(req.signedCookies && req.signedCookies.auth === 'true');
-    if (isAuthed) {
-        next();
-    } else {
-        console.warn(`[AUTH] Unauthorized access attempt to: ${req.path}`);
-        res.status(401).json({ error: 'Session expired or unauthorized. Please log in again.' });
+    // Check for the signed cookies
+    const sessionToken = req.signedCookies && req.signedCookies.auth;
+    const username = req.signedCookies && req.signedCookies.username;
+
+    if (sessionToken === 'true' && username) {
+        // Bind the actual username to the request for identity-based authorization
+        req.user = { 
+            username: username,
+            // Only 'goddy' is treated as a master admin in this simplified RBAC
+            role: username === 'goddy' ? 'admin' : 'user' 
+        };
+        return next();
     }
+
+    // Log the attempt for security monitoring
+    console.warn(`[Security] Unauthorized access attempt to ${req.path} from IP: ${req.ip}`);
+    res.status(401).json({ error: 'Authentication required. Please log in again.' });
 };
 
 // --- API Endpoints ---
@@ -308,15 +332,17 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
         const user = users[0];
         
-        if (user && bcrypt.compareSync(password, user.password)) {
+        if (user && await bcrypt.compare(password, user.password)) {
             console.log(`[AUTH] Access GRANTED for ${username}`);
-            res.cookie('auth', 'true', { 
+            const cookieOptions = { 
                 httpOnly: true, 
                 signed: true, 
                 sameSite: 'none',
                 secure: true,
                 maxAge: 24 * 60 * 60 * 1000 
-            });
+            };
+            res.cookie('auth', 'true', cookieOptions);
+            res.cookie('username', user.username, cookieOptions);
             res.json({ success: true });
         } else {
             console.warn(`[AUTH] Access DENIED for: ${username} - Invalid credentials`);
@@ -330,27 +356,28 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
 // Logout
 app.post('/api/logout', (req, res) => {
-    res.clearCookie('auth', {
+    const cookieOptions = {
         httpOnly: true,
         signed: true,
         sameSite: 'none',
         secure: true
-    });
+    };
+    res.clearCookie('auth', cookieOptions);
+    res.clearCookie('username', cookieOptions);
     res.json({ success: true });
 });
 
 // Profile Update
 app.post('/api/profile', requireAuth, async (req, res) => {
     try {
-        const { username, password } = req.body;
-        if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' });
+        const { password } = req.body;
+        if (!password || password.trim().length < 8) {
+            return res.status(400).json({ error: "Password must be at least 8 characters long." });
         }
 
-        const hashedPassword = bcrypt.hashSync(password.trim(), 10);
-        // Assuming we are updating the current user. For simplicity, we update 'goddy' or whoever is logged in. 
-        // In a real app, you'd track the user ID in the session.
-        await pool.query("UPDATE users SET password = ? WHERE username = ?", [hashedPassword, username.trim().toLowerCase()]);
+        const hashedPassword = await bcrypt.hash(password.trim(), 12); 
+        // Security: Users can only update their OWN password based on their session identity
+        await pool.query("UPDATE users SET password = ? WHERE username = ?", [hashedPassword, req.user.username]);
         
         res.json({ success: true });
     } catch (err) {
@@ -379,7 +406,8 @@ app.get('/api/settings', async (req, res) => {
 
 app.post('/api/settings', requireAuth, async (req, res) => {
     try {
-        const { announcement, showAnnouncement } = req.body;
+        const announcement = sanitize(req.body.announcement);
+        const { showAnnouncement } = req.body;
         await pool.query("UPDATE settings SET announcement = ?, show_announcement = ? WHERE id = 1", [announcement, showAnnouncement]);
         res.json({ success: true });
     } catch (err) {
@@ -416,7 +444,9 @@ app.get('/api/portfolio', async (req, res) => {
 // Add Portfolio Item (Protected) - Uses local file upload
 app.post('/api/portfolio', requireAuth, upload.single('image'), async (req, res) => {
     try {
-        const { title, category, description } = req.body;
+        const title = sanitize(req.body.title);
+        const category = sanitize(req.body.category);
+        const description = sanitize(req.body.description);
         // Upload to ImageKit
         const imageUrl = req.file ? await uploadToImageKit(req.file) : '';
 
@@ -499,7 +529,10 @@ app.get('/api/services', async (req, res) => {
 // Add Service (Protected, with local file upload)
 app.post('/api/services', requireAuth, upload.single('image'), async (req, res) => {
     try {
-        const { name, description, long_description, price_type, price_min, price_max, visible } = req.body;
+        const name = sanitize(req.body.name);
+        const description = sanitize(req.body.description);
+        const long_description = sanitize(req.body.long_description);
+        const { price_type, price_min, price_max, visible } = req.body;
         const imageUrl = req.file ? await uploadToImageKit(req.file) : '';
 
         if (!name || !description) {
@@ -529,7 +562,10 @@ app.post('/api/services', requireAuth, upload.single('image'), async (req, res) 
 app.put('/api/services/:id', requireAuth, upload.single('image'), async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { name, description, long_description, price_type, price_min, price_max, visible } = req.body;
+        const name = sanitize(req.body.name);
+        const description = sanitize(req.body.description);
+        const long_description = sanitize(req.body.long_description);
+        const { price_type, price_min, price_max, visible } = req.body;
         const imageUrl = req.file ? await uploadToImageKit(req.file) : null;
 
         if (!name || !description) {
@@ -606,7 +642,9 @@ app.get('/api/testimonials', async (req, res) => {
 
 app.post('/api/testimonials', upload.single('project_file'), contactLimiter, async (req, res) => {
     try {
-        const { name, message, service } = req.body;
+        const name = sanitize(req.body.name);
+        const message = sanitize(req.body.message);
+        const service = sanitize(req.body.service);
         
         if (!name || !message) {
             return res.status(400).json({ error: 'Name and message are required' });
@@ -752,7 +790,12 @@ app.delete('/api/requests/:id', requireAuth, async (req, res) => {
 });
 
 // --- Fix DB endpoint (debug) ---
-app.get('/api/fix-db', async (req, res) => {
+app.get('/api/fix-db', requireAuth, async (req, res) => {
+    // Only 'admin' role can pass
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Access Denied: Administrative privileges required.' });
+    }
+
     try {
         const [rows] = await pool.query('SELECT * FROM requests');
         
@@ -762,14 +805,18 @@ app.get('/api/fix-db', async (req, res) => {
         // Try altering again
         await pool.query('ALTER TABLE requests MODIFY id INT AUTO_INCREMENT');
 
-        res.json({ success: true, message: 'Requests table repaired!', data: rows });
-    } catch (e) {
-        res.json({ error: e.message });
+        res.json({ success: true, message: 'Database maintenance completed successfully.', data: rows });
+    } catch (err) {
+        console.error("[Security] Maintenance failed:", err);
+        res.status(500).json({ error: 'Maintenance failed.' });
     }
 });
 
 // --- Migration status endpoint (debug) ---
-app.get('/api/migration-status', async (req, res) => {
+app.get('/api/migration-status', requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access Denied.' });
+  }
   try {
     const tables = ['users','portfolio','services','testimonials','requests','announcements','registration_requests','materials','assessments','results','enrollments','activity_log','courses'];
     const placeholders = tables.map(() => '?').join(',');
@@ -784,8 +831,8 @@ app.get('/api/migration-status', async (req, res) => {
     }, {});
     res.json({ migrationComplete: Object.values(status).every(v => v), tables: status });
   } catch (err) {
-    console.error('[Migration Status] error:', err);
-    res.status(500).json({ error: err.message });
+    console.error('[Security] Migration Status error:', err);
+    res.status(500).json({ error: 'Internal error' });
   }
 });
 
