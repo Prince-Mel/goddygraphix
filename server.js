@@ -12,16 +12,10 @@ const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 
 const window = new JSDOM('').window;
-const dompurify = createDOMPurify(window);
+const DOMPurify = createDOMPurify(window);
 
-// Security Helper: Sanitize user input to prevent XSS attacks
-const sanitize = (text) => {
-    if (!text || typeof text !== 'string') return text;
-    return dompurify.sanitize(text, {
-        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'li', 'ol'],
-        ALLOWED_ATTR: ['href', 'target']
-    });
-};
+// Senior Developer Tip: Create a reusable sanitization function
+const sanitize = (text) => DOMPurify.sanitize(text);
 const pool = require('./db'); // MySQL Connection
 const { upload, uploadToImageKit } = require('./imagekit'); // ImageKit Hosting
 const cors = require('cors');
