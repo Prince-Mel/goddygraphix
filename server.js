@@ -21,6 +21,7 @@ const { upload, uploadToImageKit } = require('./imagekit'); // ImageKit Hosting
 const cors = require('cors');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // --- Configuration & Constants ---
 const port = process.env.PORT || 3000;
@@ -157,6 +158,9 @@ const initDb = async () => {
         }
 
         try {
+            await connection.query("ALTER TABLE portfolio MODIFY image_url TEXT NOT NULL");
+            await connection.query("ALTER TABLE services MODIFY image_url TEXT");
+            await connection.query("ALTER TABLE testimonials MODIFY file_url TEXT");
             await connection.query("ALTER TABLE requests MODIFY id INT AUTO_INCREMENT");
             await connection.query("ALTER TABLE testimonials MODIFY id INT AUTO_INCREMENT");
             await connection.query("ALTER TABLE services MODIFY id INT AUTO_INCREMENT");
@@ -442,7 +446,7 @@ app.post('/api/portfolio', requireAuth, upload.single('image'), async (req, res)
         const category = sanitize(req.body.category);
         const description = sanitize(req.body.description);
         // Upload to ImageKit
-        const imageUrl = req.file ? await uploadToImageKit(req.file) : '';
+        const imageUrl = req.file ? await uploadToImageKit(req.file, req) : '';
 
         if (!title || !category || !imageUrl) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -510,7 +514,7 @@ app.get('/api/services', async (req, res) => {
             visible: !!row.visible,
             price_min: row.price_min ? parseFloat(row.price_min) : null,
             price_max: row.price_max ? parseFloat(row.price_max) : null,
-            image_url: row.image_url && row.image_url.startsWith('http') ? row.image_url : '',
+            image_url: row.image_url || '',
             raw_image_url: row.image_url // Debugging field
         }));
         res.json(formatted);
@@ -527,7 +531,7 @@ app.post('/api/services', requireAuth, upload.single('image'), async (req, res) 
         const description = sanitize(req.body.description);
         const long_description = sanitize(req.body.long_description);
         const { price_type, price_min, price_max, visible } = req.body;
-        const imageUrl = req.file ? await uploadToImageKit(req.file) : '';
+        const imageUrl = req.file ? await uploadToImageKit(req.file, req) : '';
 
         if (!name || !description) {
             return res.status(400).json({ error: 'Name and description are required' });
@@ -560,7 +564,7 @@ app.put('/api/services/:id', requireAuth, upload.single('image'), async (req, re
         const description = sanitize(req.body.description);
         const long_description = sanitize(req.body.long_description);
         const { price_type, price_min, price_max, visible } = req.body;
-        const imageUrl = req.file ? await uploadToImageKit(req.file) : null;
+        const imageUrl = req.file ? await uploadToImageKit(req.file, req) : null;
 
         if (!name || !description) {
             return res.status(400).json({ error: 'Name and description are required' });
@@ -648,7 +652,7 @@ app.post('/api/testimonials', upload.single('project_file'), contactLimiter, asy
         let isPdf = false;
         
         if (req.file) {
-            fileUrl = await uploadToImageKit(req.file);
+            fileUrl = await uploadToImageKit(req.file, req);
             isPdf = req.file.mimetype === 'application/pdf';
         }
 
@@ -678,7 +682,7 @@ app.put('/api/testimonials/:id', requireAuth, upload.single('project_file'), asy
 
         if (req.file) {
             query += ", file_url = ?, is_pdf = ?";
-            const uploadedUrl = await uploadToImageKit(req.file);
+            const uploadedUrl = await uploadToImageKit(req.file, req);
             params.push(uploadedUrl, req.file.mimetype === 'application/pdf');
         }
 

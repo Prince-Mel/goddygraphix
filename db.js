@@ -1,28 +1,39 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Ensure MYSQL_URL is defined and non‑empty
-if (!process.env.MYSQL_URL) {
-  console.error('[DB] Critical: MYSQL_URL not set.');
-  throw new Error('Missing MYSQL_URL environment variable');
+const hasMysqlUrl = !!process.env.MYSQL_URL;
+const hasLocalConfig = !!(process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME);
+
+if (!hasMysqlUrl && !hasLocalConfig) {
+  console.error('[DB] Critical: MYSQL_URL or DB_HOST/DB_USER/DB_NAME must be set.');
+  throw new Error('Missing database environment variables');
 }
 
-// Trim any stray whitespace/newlines
-const mysqlUrl = process.env.MYSQL_URL.trim();
-
-console.log(`[DB] Attempting connection via MYSQL_URL`);
-
-// Create pool using the URL string
-const pool = mysql.createPool({
-  uri: mysqlUrl,
+const baseConfig = {
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0,
-  ssl: { rejectUnauthorized: false }
-});
+  queueLimit: 0
+};
 
+const poolConfig = hasMysqlUrl
+  ? {
+      ...baseConfig,
+      uri: process.env.MYSQL_URL.trim(),
+      ssl: { rejectUnauthorized: false }
+    }
+  : {
+      ...baseConfig,
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD || process.env.DB_PASS || '',
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT || 3306
+    };
 
-// Simple connection test – logs success or detailed error
+console.log(`[DB] Attempting connection via ${hasMysqlUrl ? 'MYSQL_URL' : 'DB_HOST/DB_USER/DB_NAME'}`);
+
+const pool = mysql.createPool(poolConfig);
+
 (async () => {
   try {
     const conn = await pool.getConnection();
