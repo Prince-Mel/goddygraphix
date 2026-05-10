@@ -816,29 +816,50 @@
                     return;
                 }
 
-                list.innerHTML = items.map(item => `
-                    <div class="flex items-center p-6 hover:bg-gray-50 transition group">
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center p-6 hover:bg-gray-50 transition group';
+                    div.innerHTML = `
                         <div class="w-20 h-20 rounded-2xl overflow-hidden shadow-md flex-shrink-0 relative">
-                            <img src="${item.image_url}" class="w-full h-full object-cover transition transform group-hover:scale-110">
-                            ${item.visible === false ? '<div class="absolute inset-0 bg-black/60 flex items-center justify-center text-white"><i class="fas fa-eye-slash"></i></div>' : ''}
+                            <img src="" class="item-img w-full h-full object-cover transition transform group-hover:scale-110">
+                            <div class="visibility-overlay absolute inset-0 bg-black/60 hidden items-center justify-center text-white"><i class="fas fa-eye-slash"></i></div>
                         </div>
                         <div class="ml-6 flex-grow">
-                            <h4 class="font-extrabold text-primary text-lg">${item.title}</h4>
+                            <h4 class="item-title font-extrabold text-primary text-lg"></h4>
                             <div class="flex items-center mt-1">
-                                <span class="text-[10px] font-bold bg-secondary/10 text-secondary px-2 py-1 rounded uppercase mr-2">${item.category}</span>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest"><i class="far fa-calendar-alt mr-1"></i> ${new Date(item.created_at).toLocaleDateString()}</span>
+                                <span class="item-category text-[10px] font-bold bg-secondary/10 text-secondary px-2 py-1 rounded uppercase mr-2"></span>
+                                <span class="item-date text-[10px] font-bold text-gray-400 uppercase tracking-widest"></span>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
-                            <button onclick="toggleVisibility(${item.id}, ${item.visible === false})" class="w-10 h-10 rounded-full flex items-center justify-center ${item.visible !== false ? 'text-green-500 bg-green-50 hover:bg-green-100' : 'text-gray-400 bg-gray-100 hover:bg-gray-200'} transition" title="${item.visible !== false ? 'Hide from public' : 'Show to public'}">
-                                <i class="fas ${item.visible !== false ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                            </button>
-                            <button onclick="deleteItem(${item.id})" class="w-10 h-10 rounded-full flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition">
+                            <button class="visibility-btn w-10 h-10 rounded-full flex items-center justify-center transition"></button>
+                            <button class="delete-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+
+                    div.querySelector('.item-img').src = item.image_url;
+                    div.querySelector('.item-title').textContent = item.title;
+                    div.querySelector('.item-category').textContent = item.category;
+                    div.querySelector('.item-date').innerHTML = `<i class="far fa-calendar-alt mr-1"></i> ${new Date(item.created_at).toLocaleDateString()}`;
+
+                    if (item.visible === false) {
+                        div.querySelector('.visibility-overlay').classList.remove('hidden');
+                        div.querySelector('.visibility-overlay').classList.add('flex');
+                    }
+
+                    const visBtn = div.querySelector('.visibility-btn');
+                    const isVisible = item.visible !== false;
+                    visBtn.className += isVisible ? ' text-green-500 bg-green-50 hover:bg-green-100' : ' text-gray-400 bg-gray-100 hover:bg-gray-200';
+                    visBtn.title = isVisible ? 'Hide from public' : 'Show to public';
+                    visBtn.innerHTML = `<i class="fas ${isVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
+                    visBtn.onclick = () => toggleVisibility(item.id, !isVisible);
+
+                    div.querySelector('.delete-btn').onclick = () => deleteItem(item.id);
+
+                    list.appendChild(div);
+                });
                 updateStats();
             } catch (err) { console.error(err); }
         }
@@ -876,41 +897,56 @@
                     return;
                 }
 
-                list.innerHTML = requests.map(req => `
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 group hover:border-secondary transition">
+                requests.forEach(req => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 group hover:border-secondary transition';
+                    card.innerHTML = `
                         <div class="flex-grow">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary mb-1 block">${req.service}</span>
-                                    <h3 class="text-2xl font-extrabold text-primary mb-2">${req.subject}</h3>
+                                    <span class="req-service text-[10px] font-black uppercase tracking-[0.2em] text-secondary mb-1 block"></span>
+                                    <h3 class="req-subject text-2xl font-extrabold text-primary mb-2"></h3>
                                 </div>
-                                <span class="text-xs font-bold text-gray-300">${new Date(req.created_at).toLocaleDateString()}</span>
+                                <span class="req-date text-xs font-bold text-gray-300"></span>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-6">
                                 <div class="flex items-center text-sm text-gray-600">
-                                    <i class="fas fa-user-circle w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Client:</span> ${req.name}
+                                    <i class="fas fa-user-circle w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Client:</span> <span class="req-name"></span>
                                 </div>
                                 <div class="flex items-center text-sm text-gray-600">
-                                    <i class="fas fa-envelope w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Email:</span> ${req.email}
+                                    <i class="fas fa-envelope w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Email:</span> <span class="req-email"></span>
                                 </div>
                                 <div class="flex items-center text-sm text-gray-600">
-                                    <i class="fas fa-phone-alt w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Phone:</span> ${req.phone || 'N/A'}
+                                    <i class="fas fa-phone-alt w-6 text-gray-300"></i> <span class="font-bold mr-2 text-primary">Phone:</span> <span class="req-phone"></span>
                                 </div>
                             </div>
                             <div class="bg-gray-50 p-6 rounded-2xl text-sm text-gray-700 leading-relaxed border border-gray-100 italic">
-                                "${req.message}"
+                                "<span class="req-message"></span>"
                             </div>
                         </div>
                         <div class="flex md:flex-col justify-end gap-2">
-                            <a href="mailto:${req.email}" class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-secondary hover:text-primary transition shadow-lg">
+                            <a href="" class="reply-btn w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-secondary hover:text-primary transition shadow-lg">
                                 <i class="fas fa-reply"></i>
                             </a>
-                            <button onclick="deleteRequest(${req.id})" class="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition">
+                            <button class="delete-btn w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+
+                    card.querySelector('.req-service').textContent = req.service;
+                    card.querySelector('.req-subject').textContent = req.subject;
+                    card.querySelector('.req-date').textContent = new Date(req.created_at).toLocaleDateString();
+                    card.querySelector('.req-name').textContent = req.name;
+                    card.querySelector('.req-email').textContent = req.email;
+                    card.querySelector('.req-phone').textContent = req.phone || 'N/A';
+                    card.querySelector('.req-message').textContent = req.message;
+
+                    card.querySelector('.reply-btn').href = `mailto:${req.email}`;
+                    card.querySelector('.delete-btn').onclick = () => deleteRequest(req.id);
+
+                    list.appendChild(card);
+                });
                 updateStats();
             } catch (err) { console.error(err); }
         }
@@ -1069,35 +1105,56 @@
                     return;
                 }
 
-                list.innerHTML = services.map(svc => {
+                services.forEach(svc => {
                     const priceDisplay = svc.price_type === 'fixed' 
                         ? `GH₵${svc.price_min}` 
                         : `GH₵${svc.price_min} - GH₵${svc.price_max}`;
 
-                    return `
-                    <div class="flex items-center p-6 hover:bg-gray-50 transition group">
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center p-6 hover:bg-gray-50 transition group';
+                    div.innerHTML = `
                         <div class="w-16 h-16 rounded-2xl overflow-hidden shadow-md flex-shrink-0 relative">
-                            <img src="${svc.image_url || 'https://via.placeholder.com/64?text=Service'}" class="w-full h-full object-cover">
-                            ${svc.visible === false ? '<div class="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xs"><i class="fas fa-eye-slash"></i></div>' : ''}
+                            <img src="" class="svc-img w-full h-full object-cover">
+                            <div class="visibility-overlay absolute inset-0 bg-black/60 hidden items-center justify-center text-white text-xs"><i class="fas fa-eye-slash"></i></div>
                         </div>
                         <div class="ml-4 flex-grow min-w-0">
-                            <h4 class="font-extrabold text-primary text-sm truncate">${svc.name}</h4>
-                            <p class="text-xs text-gray-500 mt-0.5 truncate">${svc.description}</p>
-                            <p class="text-xs font-bold text-secondary mt-1">${priceDisplay}</p>
+                            <h4 class="svc-name font-extrabold text-primary text-sm truncate"></h4>
+                            <p class="svc-desc text-xs text-gray-500 mt-0.5 truncate"></p>
+                            <p class="svc-price text-xs font-bold text-secondary mt-1"></p>
                         </div>
                         <div class="flex items-center gap-3 ml-4">
-                            <button onclick="editService(${svc.id})" class="w-9 h-9 rounded-full flex items-center justify-center text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
+                            <button class="edit-btn w-9 h-9 rounded-full flex items-center justify-center text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="toggleServiceVisibility(${svc.id}, ${svc.visible === false})" class="w-9 h-9 rounded-full flex items-center justify-center ${svc.visible !== false ? 'text-green-500 bg-green-50 hover:bg-green-100' : 'text-gray-400 bg-gray-100 hover:bg-gray-200'} transition" title="${svc.visible !== false ? 'Hide' : 'Show'}">
-                                <i class="fas ${svc.visible !== false ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                            </button>
-                            <button onclick="deleteService(${svc.id})" class="w-9 h-9 rounded-full flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
+                            <button class="visibility-btn w-9 h-9 rounded-full flex items-center justify-center transition"></button>
+                            <button class="delete-btn w-9 h-9 rounded-full flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
-                    </div>`;
-                }).join('');
+                    `;
+
+                    div.querySelector('.svc-img').src = svc.image_url || 'https://via.placeholder.com/64?text=Service';
+                    div.querySelector('.svc-name').textContent = svc.name;
+                    div.querySelector('.svc-desc').textContent = svc.description;
+                    div.querySelector('.svc-price').textContent = priceDisplay;
+
+                    if (svc.visible === false) {
+                        div.querySelector('.visibility-overlay').classList.remove('hidden');
+                        div.querySelector('.visibility-overlay').classList.add('flex');
+                    }
+
+                    div.querySelector('.edit-btn').onclick = () => editService(svc.id);
+                    div.querySelector('.delete-btn').onclick = () => deleteService(svc.id);
+
+                    const visBtn = div.querySelector('.visibility-btn');
+                    const isVisible = svc.visible !== false;
+                    visBtn.className += isVisible ? ' text-green-500 bg-green-50 hover:bg-green-100' : ' text-gray-400 bg-gray-100 hover:bg-gray-200';
+                    visBtn.title = isVisible ? 'Hide' : 'Show';
+                    visBtn.innerHTML = `<i class="fas ${isVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
+                    visBtn.onclick = () => toggleServiceVisibility(svc.id, !isVisible);
+
+                    list.appendChild(div);
+                });
             } catch (err) { console.error(err); }
         }
 
@@ -1265,42 +1322,63 @@
 
                 // Determine status label
                 // pending = approved:false, visible:true (fresh submission)
-                // disapproved = approved:false, visible:false
-                // approved = approved:true
+                tbody.innerHTML = '';
+
                 function getStatus(t) {
                     if (t.approved) return { label: '✓ Approved', cls: 'bg-green-100 text-green-600' };
                     if (!t.visible) return { label: '✗ Disapproved', cls: 'bg-red-100 text-red-500' };
                     return { label: '⏳ Pending Review', cls: 'bg-yellow-100 text-yellow-600' };
                 }
 
-                tbody.innerHTML = items.map(t => {
+                items.forEach(t => {
                     const status = getStatus(t);
-                    return `
-                    <tr class="hover:bg-gray-50 transition" id="trow-${t.id}">
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-gray-50 transition';
+                    tr.id = `trow-${t.id}`;
+                    tr.innerHTML = `
                         <td class="p-4">
-                            <p class="font-bold text-primary">${t.name}</p>
-                            ${t.service ? `<p class="text-xs text-gray-400 mt-0.5">${t.service}</p>` : ''}
-                            <p class="text-[10px] text-gray-300 mt-1">${new Date(t.created_at).toLocaleDateString()}</p>
+                            <p class="font-bold text-primary t-name"></p>
+                            <div class="t-service-container"></div>
+                            <p class="text-[10px] text-gray-300 mt-1 t-date"></p>
                         </td>
                         <td class="p-4 max-w-xs">
-                            <p class="text-sm text-gray-600 line-clamp-2">${t.message}</p>
+                            <p class="text-sm text-gray-600 line-clamp-2 t-message"></p>
                         </td>
                         <td class="p-4 text-center">
-                            <span class="text-[10px] font-bold px-2 py-1 rounded-full ${status.cls}">${status.label}</span>
+                            <span class="status-badge text-[10px] font-bold px-2 py-1 rounded-full"></span>
                         </td>
                         <td class="p-4">
                             <div class="flex gap-2 justify-end">
-                                <button onclick='openAdminReviewModal(${JSON.stringify(t)})' class="text-xs px-3 py-1.5 bg-primary hover:opacity-80 text-white font-bold rounded-lg transition">
+                                <button class="review-btn text-xs px-3 py-1.5 bg-primary hover:opacity-80 text-white font-bold rounded-lg transition">
                                     <i class="fas fa-eye mr-1"></i> Review
                                 </button>
-                                <button onclick="adminDeleteTestimony(${t.id})" class="text-xs px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition">
+                                <button class="delete-btn text-xs px-3 py-1.5 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white font-bold rounded-lg transition">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </td>
-                    </tr>
                     `;
-                }).join('');
+
+                    tr.querySelector('.t-name').textContent = t.name;
+                    tr.querySelector('.t-message').textContent = t.message;
+                    tr.querySelector('.t-date').textContent = new Date(t.created_at).toLocaleDateString();
+
+                    if (t.service) {
+                        const svcEl = document.createElement('p');
+                        svcEl.className = 'text-xs text-gray-400 mt-0.5';
+                        svcEl.textContent = t.service;
+                        tr.querySelector('.t-service-container').appendChild(svcEl);
+                    }
+
+                    const badge = tr.querySelector('.status-badge');
+                    badge.textContent = status.label;
+                    badge.className += ` ${status.cls}`;
+
+                    tr.querySelector('.review-btn').onclick = () => openAdminReviewModal(t);
+                    tr.querySelector('.delete-btn').onclick = () => adminDeleteTestimony(t.id);
+
+                    tbody.appendChild(tr);
+                });
 
                 updateStats();
             } catch (err) { console.error('Failed to load testimonials', err); }

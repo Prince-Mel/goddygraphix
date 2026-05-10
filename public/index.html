@@ -945,15 +945,20 @@
                             div.className = 'portfolio-item relative overflow-hidden rounded-lg shadow-lg group cursor-pointer';
                             div.onclick = () => openPortfolioModal(item);
                             div.innerHTML = `
-                                <img src="${item.image_url}" alt="${item.title}" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110">
+                                <img src="" alt="" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110 portfolio-img">
                                 <div class="overlay absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center opacity-0 transition-opacity duration-300">
                                     <div class="text-center p-4">
-                                        <h3 class="text-white text-xl font-bold mb-2">${item.title}</h3>
-                                        <p class="text-gray-300">${item.category}</p>
+                                        <h3 class="text-white text-xl font-bold mb-2 portfolio-title"></h3>
+                                        <p class="text-gray-300 portfolio-category"></p>
                                         <span class="mt-4 inline-block text-secondary text-sm border border-secondary rounded-full px-4 py-1 hover:bg-secondary hover:text-light transition">View Details</span>
                                     </div>
                                 </div>
                             `;
+                            const img = div.querySelector('.portfolio-img');
+                            img.src = item.image_url;
+                            img.alt = item.title;
+                            div.querySelector('.portfolio-title').textContent = item.title;
+                            div.querySelector('.portfolio-category').textContent = item.category;
                             grid.appendChild(div);
                         });
                     }
@@ -1042,34 +1047,58 @@
                     return;
                 }
 
-                const html = allTestimonials.map((t, index) => {
+                allTestimonials.forEach((t, index) => {
                     const isHidden = !testimonialsVisible && index >= 9;
-                    return `
-                    <div class="bg-white rounded-xl shadow-md p-6 testimonial-card transition duration-300 hover:shadow-xl ${isHidden ? 'hidden' : ''}">
+                    const card = document.createElement('div');
+                    card.className = `bg-white rounded-xl shadow-md p-6 testimonial-card transition duration-300 hover:shadow-xl ${isHidden ? 'hidden' : ''}`;
+                    
+                    card.innerHTML = `
                         <div class="flex items-start justify-between mb-4 gap-4">
                             <div class="flex-1">
-                                <h3 class="font-bold text-[#d30303] text-lg mb-1">${t.name}</h3>
-                                ${t.service ? `<p class="text-[10px] text-[#d30303]/70 font-bold uppercase tracking-widest bg-red-50 inline-block px-2 py-1 rounded">${t.service}</p>` : ''}
+                                <h3 class="font-bold text-[#d30303] text-lg mb-1 t-name"></h3>
+                                <div class="t-service-container"></div>
                             </div>
                         </div>
                         
                         <div class="testimonial-message text-gray-700 mb-6 text-sm leading-relaxed relative">
-                            <p class="line-clamp-5 inline transition-all" id="msg-${t.id}">${t.message}</p>
-                            ${t.message.length > 180 ? `<button onclick="toggleReadMore(this, 'msg-${t.id}')" class="text-[#d30303] font-bold text-xs mt-2 block hover:underline transition">...Read more</button>` : ''}
+                            <p class="line-clamp-5 inline transition-all t-message"></p>
+                            <div class="read-more-container"></div>
                         </div>
                         
-                        ${t.file_url ? `
-                        <div class="mt-auto pt-4 border-t border-gray-100">
-                            <button onclick="openProjectPreview('${t.file_url}', ${t.is_pdf})" class="w-full py-2.5 bg-red-50 border border-red-200 text-[#d30303] rounded-lg hover:bg-[#d30303] hover:text-white hover:border-[#d30303] transition font-bold text-sm tracking-wide shadow-sm flex justify-center items-center gap-2 group">
-                                <i class="${t.is_pdf ? 'fas fa-file-pdf' : 'fas fa-image'} transition"></i> View Project Output
-                            </button>
-                        </div>
-                        ` : ''}
-                    </div>
+                        <div class="t-file-container"></div>
                     `;
-                }).join('');
 
-                grid.innerHTML = html;
+                    card.querySelector('.t-message').id = `msg-${t.id}`;
+                    card.querySelector('.t-name').textContent = t.name;
+                    card.querySelector('.t-message').textContent = t.message;
+
+                    if (t.service) {
+                        const serviceEl = document.createElement('p');
+                        serviceEl.className = 'text-[10px] text-[#d30303]/70 font-bold uppercase tracking-widest bg-red-50 inline-block px-2 py-1 rounded';
+                        serviceEl.textContent = t.service;
+                        card.querySelector('.t-service-container').appendChild(serviceEl);
+                    }
+
+                    if (t.message.length > 180) {
+                        const readMore = document.createElement('button');
+                        readMore.className = 'text-[#d30303] font-bold text-xs mt-2 block hover:underline transition';
+                        readMore.textContent = '...Read more';
+                        readMore.onclick = () => toggleReadMore(readMore, `msg-${t.id}`);
+                        card.querySelector('.read-more-container').appendChild(readMore);
+                    }
+
+                    if (t.file_url) {
+                        const fileBtn = document.createElement('button');
+                        fileBtn.className = 'w-full py-2.5 bg-red-50 border border-red-200 text-[#d30303] rounded-lg hover:bg-[#d30303] hover:text-white hover:border-[#d30303] transition font-bold text-sm tracking-wide shadow-sm flex justify-center items-center gap-2 group';
+                        fileBtn.innerHTML = `<i class="${t.is_pdf ? 'fas fa-file-pdf' : 'fas fa-image'} transition"></i> View Project Output`;
+                        fileBtn.onclick = () => openProjectPreview(t.file_url, t.is_pdf);
+                        const fileContainer = card.querySelector('.t-file-container');
+                        fileContainer.className = 'mt-auto pt-4 border-t border-gray-100';
+                        fileContainer.appendChild(fileBtn);
+                    }
+
+                    grid.appendChild(card);
+                });
 
                 if (allTestimonials.length > 9) {
                     seeMoreBtn.classList.remove('hidden');
@@ -1138,18 +1167,21 @@
                     feedback.classList.remove('hidden', 'bg-red-50', 'text-red-500');
                     if (data.success) {
                         feedback.classList.add('bg-green-50', 'text-green-600');
-                        feedback.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${data.message}`;
+                        feedback.textContent = data.message;
+                        feedback.insertAdjacentHTML('afterbegin', '<i class="fas fa-check-circle mr-2"></i>');
                         setTimeout(() => {
                             closeAddTestimonialsModal();
                         }, 3000);
                     } else {
                         feedback.classList.add('bg-red-50', 'text-red-500');
-                        feedback.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${data.error || 'Failed to submit'}`;
+                        feedback.textContent = data.error || 'Failed to submit';
+                        feedback.insertAdjacentHTML('afterbegin', '<i class="fas fa-exclamation-circle mr-2"></i>');
                     }
                 } catch (err) {
                     feedback.classList.remove('hidden', 'bg-green-50', 'text-green-600');
                     feedback.classList.add('bg-red-50', 'text-red-500');
-                    feedback.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> Connection error`;
+                    feedback.textContent = 'Connection error';
+                    feedback.insertAdjacentHTML('afterbegin', '<i class="fas fa-exclamation-circle mr-2"></i>');
                 }
 
                 btn.innerHTML = 'Submit Testimony';
