@@ -1,4 +1,4 @@
-const ImageKit = require('@imagekit/nodejs');
+const { ImageKit } = require('@imagekit/nodejs');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
@@ -8,11 +8,14 @@ if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-// Initialize ImageKit
-const imagekit = new ImageKit({
-    publicKey: process.env.IMAGEKIT_PUBLIC_KEY || '',
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || ''
+const hasImageKitConfig = () => !!(
+    process.env.IMAGEKIT_PUBLIC_KEY &&
+    process.env.IMAGEKIT_PRIVATE_KEY &&
+    process.env.IMAGEKIT_URL_ENDPOINT
+);
+
+const createImageKitClient = () => new ImageKit({
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY
 });
 
 // Configure Multer for memory storage (required for cloud uploads)
@@ -45,11 +48,7 @@ const upload = multer({
 const uploadToImageKit = async (file, req = null) => {
     if (!file) return null;
 
-    const hasImageKitConfig = process.env.IMAGEKIT_PUBLIC_KEY &&
-        process.env.IMAGEKIT_PRIVATE_KEY &&
-        process.env.IMAGEKIT_URL_ENDPOINT;
-
-    if (!hasImageKitConfig) {
+    if (!hasImageKitConfig()) {
         const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
         const filename = `goddygraphix-${Date.now()}-${safeName}`;
         const filePath = path.join(UPLOAD_DIR, filename);
@@ -70,8 +69,9 @@ const uploadToImageKit = async (file, req = null) => {
     }
 
     try {
+        const imagekit = createImageKitClient();
         console.log(`[IMAGEKIT] Uploading file: ${file.originalname} (${file.size} bytes)`);
-        const response = await imagekit.upload({
+        const response = await imagekit.files.upload({
             file: file.buffer, // required
             fileName: `goddygraphix-${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`, // required
             folder: "/goddygraphix_uploads"
