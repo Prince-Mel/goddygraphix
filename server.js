@@ -234,7 +234,7 @@ const initDb = async () => {
         }
 
         try {
-            await connection.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('admin', 'user') NOT NULL DEFAULT 'user' AFTER password");
+            await connection.query("ALTER TABLE users ADD COLUMN role ENUM('admin', 'user') NOT NULL DEFAULT 'user' AFTER password");
             await connection.query("ALTER TABLE portfolio MODIFY image_url TEXT NOT NULL");
             await connection.query("ALTER TABLE services MODIFY image_url TEXT");
             await connection.query("ALTER TABLE testimonials MODIFY file_url TEXT");
@@ -243,7 +243,12 @@ const initDb = async () => {
             await connection.query("ALTER TABLE services MODIFY id INT AUTO_INCREMENT");
             await connection.query("ALTER TABLE users MODIFY id INT AUTO_INCREMENT");
             await connection.query("ALTER TABLE portfolio MODIFY id INT AUTO_INCREMENT");
-        } catch(e) { console.log("[DB] Alter tables ignored:", e.message); }
+        } catch(e) { 
+            // Silence "Duplicate column" or "Duplicate index" errors
+            if (!e.message.toLowerCase().includes('duplicate column')) {
+                console.log("[DB] Alter tables ignored:", e.message); 
+            }
+        }
 
         try {
             await connection.query('UPDATE users SET role = ? WHERE username = ?', ['admin', ADMIN_USERNAME]);
