@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goddy Graphix | Admin Control</title>
-    <link rel="icon" type="image/jpeg" href="favicon.jpeg">
+    <base href="/">
+    <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
@@ -701,7 +702,7 @@
 
             // Update History if requested
             if (pushState && history.pushState) {
-                history.pushState({ tabId }, "", "#" + tabId);
+                history.pushState({ tabId }, "", "/admin/" + tabId);
             }
 
             if (tabId === 'portfolio') loadPortfolioItems();
@@ -715,7 +716,9 @@
         window.addEventListener('popstate', (event) => {
             // Only handle tab switching if we are already logged in (dashboard is visible)
             if (!document.getElementById('dashboard').classList.contains('hidden')) {
-                const tabId = (event.state && event.state.tabId) || window.location.hash.substring(1) || 'overview';
+                // Path format: /admin/tabName
+                const pathParts = window.location.pathname.split('/');
+                const tabId = pathParts[pathParts.length - 1] || 'overview';
                 switchTab(tabId, false);
             }
         });
@@ -850,9 +853,16 @@
             const dateEl = document.getElementById('current-date');
             if (dateEl) dateEl.innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
             
-            // Respect the hash on initial load/login
-            const initialTab = window.location.hash.substring(1) || 'overview';
-            switchTab(initialTab, false);
+            // Respect the path on initial load/login
+            const pathParts = window.location.pathname.split('/');
+            const initialTab = pathParts[pathParts.length - 1] || 'overview';
+            
+            // Check if the path actually starts with /admin before trying to route
+            if (window.location.pathname.startsWith('/admin')) {
+                switchTab(initialTab, false);
+            } else {
+                switchTab('overview', false);
+            }
 
             updateStats();
         }

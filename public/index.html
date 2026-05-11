@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goddy Graphix - Ghana's Premier Graphic Design Agency</title>
-    <link rel="icon" type="image/jpeg" href="favicon.jpeg">
+    <base href="/">
+    <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
@@ -833,7 +834,7 @@
 
             // Update History if requested
             if (pushState && history.pushState) {
-                history.pushState({ pageId }, "", "#" + pageId);
+                history.pushState({ pageId }, "", "/" + (pageId === 'home' ? '' : pageId));
             }
 
             // Scroll to top
@@ -842,13 +843,13 @@
 
         // Handle Back/Forward buttons
         window.addEventListener('popstate', (event) => {
-            const pageId = (event.state && event.state.pageId) || window.location.hash.substring(1) || 'home';
-            showPage(pageId, false);
+            const path = window.location.pathname.substring(1) || 'home';
+            showPage(path, false);
         });
         
-        // Initialize with correct page based on hash
+        // Initialize with correct page based on path
         document.addEventListener('DOMContentLoaded', function() {
-            const initialPage = window.location.hash.substring(1) || 'home';
+            const initialPage = window.location.pathname.substring(1) || 'home';
             showPage(initialPage, false);
             
             // Fetch Settings (Announcement)

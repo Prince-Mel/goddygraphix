@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer');
@@ -1016,6 +1017,23 @@ app.use((err, req, res, next) => {
         error: err.message || 'An unexpected server error occurred.',
         details: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
+});
+
+
+// --- Clean URL Routing ---
+
+// Admin Catch-all: Any path starting with /admin serves admin.html
+app.get('/admin*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Main Site Catch-all: Any other non-API path serves index.html
+app.get('*', (req, res) => {
+    // Exclude /api and /uploads which are handled by middleware above
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+        return res.status(404).json({ error: 'Not Found' });
+    }
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(port, () => {
