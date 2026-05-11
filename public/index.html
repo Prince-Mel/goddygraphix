@@ -157,9 +157,49 @@
         .carousel-track:hover {
             animation-play-state: paused;
         }
+        .app-alert-container {
+            position: fixed;
+            top: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 120;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            width: min(92vw, 34rem);
+            pointer-events: none;
+        }
+        .app-alert {
+            width: 100%;
+            background: #ffefc1;
+            color: #d30303;
+            border: 1px solid rgba(211, 3, 3, 0.18);
+            border-radius: 1.25rem;
+            box-shadow: 0 18px 45px rgba(10, 37, 64, 0.16);
+            padding: 1rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.01em;
+            animation: appAlertIn 0.25s ease-out;
+            pointer-events: auto;
+        }
+        .app-alert.is-leaving {
+            animation: appAlertOut 0.2s ease-in forwards;
+        }
+        @keyframes appAlertIn {
+            from { opacity: 0; transform: translateY(-0.75rem) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes appAlertOut {
+            to { opacity: 0; transform: translateY(-0.5rem) scale(0.98); }
+        }
     </style>
 </head>
 <body class="font-poppins bg-light text-dark">
+    <div id="appAlertContainer" class="app-alert-container" aria-live="polite" aria-atomic="true"></div>
+
     <!-- Announcement Bar -->
     <div id="announcement-bar" class="bg-[#d30303] text-white py-2 fixed w-full z-[60] shadow-md">
         <div class="announcement-container">
@@ -701,6 +741,21 @@
             ? 'http://localhost:3000' 
             : ''; // Production Backend (uses Vercel rewrites)
 
+        function showAppAlert(message) {
+            const container = document.getElementById('appAlertContainer');
+            if (!container) return;
+
+            const alertBox = document.createElement('div');
+            alertBox.className = 'app-alert';
+            alertBox.textContent = message;
+            container.appendChild(alertBox);
+
+            setTimeout(() => {
+                alertBox.classList.add('is-leaving');
+                setTimeout(() => alertBox.remove(), 220);
+            }, 3600);
+        }
+
         // Modal functions
         function openPortfolioModal(item) {
             document.getElementById('modalImage').src = item.image_url;
@@ -990,15 +1045,15 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Thank you! Your request has been sent successfully.');
+                            showAppAlert('Thank you! Your request has been sent successfully.');
                             contactForm.reset();
                         } else {
-                            alert('Sorry, there was an error sending your message. Please try again.');
+                            showAppAlert('Sorry, there was an error sending your message. Please try again.');
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('An error occurred. Please try again later.');
+                        showAppAlert('An error occurred. Please try again later.');
                     });
                 });
             }
