@@ -198,8 +198,11 @@ const initDb = async () => {
         // Use reset_admin.js with explicit ADMIN_USERNAME and ADMIN_PASSWORD when bootstrapping.
         const [adminRows] = await connection.query("SELECT username FROM users WHERE username = ? LIMIT 1", [ADMIN_USERNAME]);
         if (adminRows.length === 0) {
-            // throw new Error('[DB] No admin user exists...'); 
-            console.log("WARNING: Empty DB detected. Please register the first account now.");
+            const message = "[DB] No admin user exists. Bootstrap one with reset_admin.js using explicit credentials.";
+            if (isProduction) {
+                throw new Error(message);
+            }
+            console.warn(message);
         }
 
         // Insert Default Settings if not exists
