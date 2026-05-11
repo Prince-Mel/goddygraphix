@@ -428,6 +428,50 @@ const requireAdmin = (req, res, next) => {
 
 // --- API Endpoints ---
 
+// Check Authentication Status
+app.get('/api/auth/check', (req, res) => {
+    if (req.user) {
+        return res.json({ 
+            authenticated: true, 
+            username: req.user.username, 
+            role: req.user.role 
+        });
+    }
+    res.json({ authenticated: false });
+});
+
+// Temporary Initial Registration (Only works if no users exist)
+app.post('/api/register', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT COUNT(*) as count FROM users");
+        if (rows[0].count > 0) {
+            return res.status(403).json({ error: "Registration is disabled. Use the admin panel to manage users." });
+        }
+
+        let { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ error: "Username and password are required" });
+        }
+
+        username = username.trim().toLowerCase();
+        password = password.trim();
+
+        if (password.length < 12) {
+            return res.status(400).json({ error: "Password must be at least 12 characters long" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        await pool.query("INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')", [username, hashedPassword]);
+
+        console.log(`[AUTH] First admin user created: ${username}`);
+        res.json({ success: true, message: "Admin account created successfully. You can now log in." });
+    } catch (err) {
+        console.error("[AUTH] Registration Error:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
 // Login
 app.post('/api/login', loginLimiter, async (req, res) => {
     try {
