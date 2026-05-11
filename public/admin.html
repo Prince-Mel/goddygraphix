@@ -696,6 +696,19 @@
             setTimeout(() => el.classList.add('hidden'), 5000);
         }
 
+        async function readApiResponse(res) {
+            const contentType = res.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                return res.json();
+            }
+
+            const text = await res.text();
+            const message = text && text.trim()
+                ? text.trim().slice(0, 240)
+                : `Unexpected ${res.status} response from server`;
+            return { error: message };
+        }
+
         // Auth Check
         async function checkAuth() {
             try {
@@ -1055,6 +1068,7 @@
 
             try {
                 const res = await fetch(API_URL + '/api/portfolio', { method: 'POST', credentials: 'include', body: formData });
+                const data = await readApiResponse(res);
                 if (res.ok) {
                     alert('Success! Project is now live.');
                     e.target.reset();
@@ -1062,12 +1076,11 @@
                     document.getElementById('uploadPreview').classList.add('hidden');
                     updateStats();
                 } else { 
-                    const data = await res.json();
                     alert('Upload failed: ' + (data.error || 'Unknown error')); 
                 }
             } catch (err) {
                 console.error('[QUICK UPLOAD]:', err);
-                alert('Connection error. Please check your server.');
+                alert('Connection error: ' + (err.message || 'Please check your server.'));
             }
             btn.disabled = false;
             btn.innerHTML = 'Publish to Portfolio';
@@ -1248,7 +1261,7 @@
                 const url = isEdit ? API_URL + `/api/services/${editId}` : API_URL + '/api/services';
                 const method = isEdit ? 'PUT' : 'POST';
                 const res = await fetch(url, { method, credentials: 'include', body: formData });
-                const data = await res.json();
+                const data = await readApiResponse(res);
 
                 if (res.ok) {
                     showFeedback('serviceFeedback', isEdit ? 'Service updated successfully!' : 'Service added successfully!');
@@ -1259,7 +1272,7 @@
                 }
             } catch (err) {
                 console.error('[ADMIN SERVICE]:', err);
-                showFeedback('serviceFeedback', 'Connection error. Check your internet or server status.', true);
+                showFeedback('serviceFeedback', 'Connection error: ' + (err.message || 'Check your internet or server status.'), true);
             }
 
             btn.disabled = false;

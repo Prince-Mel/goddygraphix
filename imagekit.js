@@ -1,4 +1,4 @@
-const { ImageKit } = require('@imagekit/nodejs');
+const { ImageKit, toFile } = require('@imagekit/nodejs');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
@@ -70,10 +70,11 @@ const uploadToImageKit = async (file, req = null) => {
 
     try {
         const imagekit = createImageKitClient();
+        const fileName = `goddygraphix-${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         console.log(`[IMAGEKIT] Uploading file: ${file.originalname} (${file.size} bytes)`);
         const response = await imagekit.files.upload({
-            file: file.buffer, // required
-            fileName: `goddygraphix-${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`, // required
+            file: await toFile(file.buffer, fileName),
+            fileName,
             folder: "/goddygraphix_uploads"
         });
         console.log("[IMAGEKIT] Upload successful:", response.url);

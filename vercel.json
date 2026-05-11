@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "public": true,
+  "name": "goddy-graphix-frontend",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://goddygraphix.onrender.com/api/$1" }
+  ]
+}
