@@ -792,7 +792,11 @@
         }
 
         // Page switching functionality
-        function showPage(pageId) {
+        function showPage(pageId, pushState = true) {
+            // Validate pageId to prevent errors
+            const validPages = ['home', 'about', 'services', 'portfolio', 'contact'];
+            if (!validPages.includes(pageId)) pageId = 'home';
+
             // Hide all sections
             const sections = document.querySelectorAll('section');
             sections.forEach(section => {
@@ -800,7 +804,8 @@
             });
             
             // Show selected section
-            document.getElementById(pageId).classList.remove('hidden');
+            const target = document.getElementById(pageId);
+            if (target) target.classList.remove('hidden');
             
             // Update active nav link
             const navLinks = document.querySelectorAll('.nav-link');
@@ -809,13 +814,14 @@
             });
             
             // Highlight current page in navigation
-            const activeLink = document.querySelector(`[onclick="showPage('${pageId}')"]`);
+            const activeLink = document.querySelector(`[onclick*="showPage('${pageId}')"]`);
             if (activeLink) {
                 activeLink.classList.add('active-link');
             }
             
             // Close mobile menu if open
-            document.getElementById('mobile-menu').classList.add('hidden');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) mobileMenu.classList.add('hidden');
             
             // Adjust layout spacing for transparent header
             const contentPadding = document.getElementById('content');
@@ -825,13 +831,25 @@
                 contentPadding.style.paddingTop = pageId === 'home' ? barHeight + 'px' : (104 + barHeight) + 'px';
             }
 
+            // Update History if requested
+            if (pushState && history.pushState) {
+                history.pushState({ pageId }, "", "#" + pageId);
+            }
+
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Handle Back/Forward buttons
+        window.addEventListener('popstate', (event) => {
+            const pageId = (event.state && event.state.pageId) || window.location.hash.substring(1) || 'home';
+            showPage(pageId, false);
+        });
         
-        // Initialize with home page
+        // Initialize with correct page based on hash
         document.addEventListener('DOMContentLoaded', function() {
-            showPage('home');
+            const initialPage = window.location.hash.substring(1) || 'home';
+            showPage(initialPage, false);
             
             // Fetch Settings (Announcement)
             fetch(API_URL + '/api/settings')

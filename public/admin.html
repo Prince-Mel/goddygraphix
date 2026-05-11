@@ -678,7 +678,10 @@
         let currentTab = 'overview';
         
         // Tab Switching
-        function switchTab(tabId) {
+        function switchTab(tabId, pushState = true) {
+            const validTabs = ['overview', 'portfolio', 'services', 'testimonials', 'requests', 'settings'];
+            if (!validTabs.includes(tabId)) tabId = 'overview';
+
             currentTab = tabId;
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
@@ -688,10 +691,18 @@
                 l.classList.add('text-gray-400');
             });
             const activeLink = document.getElementById(`tab-${tabId}`);
-            activeLink.classList.add('active', 'bg-secondary', 'text-primary');
-            activeLink.classList.remove('text-gray-400');
+            if (activeLink) {
+                activeLink.classList.add('active', 'bg-secondary', 'text-primary');
+                activeLink.classList.remove('text-gray-400');
+            }
 
-            document.getElementById('pageTitle').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
+            const pageTitle = document.getElementById('pageTitle');
+            if (pageTitle) pageTitle.innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
+
+            // Update History if requested
+            if (pushState && history.pushState) {
+                history.pushState({ tabId }, "", "#" + tabId);
+            }
 
             if (tabId === 'portfolio') loadPortfolioItems();
             if (tabId === 'services') loadServices();
@@ -699,6 +710,15 @@
             if (tabId === 'settings') loadSettings();
             if (tabId === 'testimonials') loadAdminTestimonials();
         }
+
+        // Handle Back/Forward buttons
+        window.addEventListener('popstate', (event) => {
+            // Only handle tab switching if we are already logged in (dashboard is visible)
+            if (!document.getElementById('dashboard').classList.contains('hidden')) {
+                const tabId = (event.state && event.state.tabId) || window.location.hash.substring(1) || 'overview';
+                switchTab(tabId, false);
+            }
+        });
 
         // File Selection Feedback (Portfolio)
         document.getElementById('qImage').addEventListener('change', (e) => {
@@ -829,6 +849,11 @@
             document.getElementById('dashboard').classList.remove('hidden');
             const dateEl = document.getElementById('current-date');
             if (dateEl) dateEl.innerText = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            // Respect the hash on initial load/login
+            const initialTab = window.location.hash.substring(1) || 'overview';
+            switchTab(initialTab, false);
+
             updateStats();
         }
 
