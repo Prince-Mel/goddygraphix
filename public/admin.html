@@ -829,6 +829,7 @@
                     return;
                 }
 
+                list.innerHTML = '';
                 items.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'flex items-center p-6 hover:bg-gray-50 transition group';
@@ -910,6 +911,7 @@
                     return;
                 }
 
+                list.innerHTML = '';
                 requests.forEach(req => {
                     const card = document.createElement('div');
                     card.className = 'bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 group hover:border-secondary transition';
@@ -1118,6 +1120,7 @@
                     return;
                 }
 
+                list.innerHTML = '';
                 services.forEach(svc => {
                     const priceDisplay = svc.price_type === 'fixed' 
                         ? `GH₵${svc.price_min}` 
