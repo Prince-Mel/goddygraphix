@@ -1,34 +1,39 @@
+require('dotenv').config();
+
 const bcrypt = require('bcryptjs');
 const pool = require('./db');
 
-const resetAdmin = async () => {
+const username = (process.env.ADMIN_USERNAME || '').trim().toLowerCase();
+const password = process.env.ADMIN_PASSWORD || '';
+
+async function resetAdmin() {
     try {
-        const username = 'goddy';
-        const password = 'goddy123';
-        const hashedPassword = bcrypt.hashSync(password, 10);
-
-        // Check if user exists
-        const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
-
-        if (users.length > 0) {
-            // Update existing user
-            await pool.query("UPDATE users SET password = ? WHERE username = ?", [hashedPassword, username]);
-            console.log(`✓ Admin '${username}' password has been reset to '${password}'`);
-        } else {
-            // Create new user
-            await pool.query("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword]);
-            console.log(`✓ Admin '${username}' has been created with password '${password}'`);
+        if (!username || !password) {
+            throw new Error('ADMIN_USERNAME and ADMIN_PASSWORD are required.');
         }
 
-        console.log('\nYou can now log in with:');
-        console.log(`  Username: ${username}`);
-        console.log(`  Password: ${password}`);
+        if (password.length < 12) {
+            throw new Error('ADMIN_PASSWORD must be at least 12 characters long.');
+        }
 
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const [users] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
+
+        if (users.length > 0) {
+            await pool.query('UPDATE users SET password = ?, role = ? WHERE username = ?', [hashedPassword, 'admin', username]);
+            console.log(`Admin '${username}' password has been updated.`);
+        } else {
+            await pool.query('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, hashedPassword, 'admin']);
+            console.log(`Admin '${username}' has been created.`);
+        }
+
+        await pool.query('DELETE FROM sessions WHERE username = ?', [username]).catch(() => {});
+        console.log('Admin bootstrap completed. Password was not printed.');
         process.exit(0);
     } catch (err) {
-        console.error('✗ Error:', err.message);
+        console.error('Admin bootstrap failed:', err.message);
         process.exit(1);
     }
-};
+}
 
 resetAdmin();

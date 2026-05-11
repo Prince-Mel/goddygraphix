@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer');
 const axios = require('axios'); // For Telegram & Python email notifications
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { spawn } = require('child_process'); // For Python email automation
@@ -25,7 +26,64 @@ app.set('trust proxy', 1);
 
 // --- Configuration & Constants ---
 const port = process.env.PORT || 3000;
-const COOKIE_SECRET = process.env.COOKIE_SECRET || 'your-very-secure-random-secret-key-123';
+const isProduction = process.env.NODE_ENV === 'production';
+const SESSION_COOKIE_NAME = 'sid';
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+function readRequiredSecret(name, { minLength = 32, forbiddenValues = [] } = {}) {
+    const value = process.env[name];
+    const isMissing = !value || value.trim().length === 0;
+    const isWeak = value && value.trim().length < minLength;
+    const isForbidden = value && forbiddenValues.includes(value.trim());
+
+    if (isProduction && (isMissing || isWeak || isForbidden)) {
+        throw new Error(`[CONFIG] ${name} must be set to a strong value in production.`);
+    }
+
+    if (isMissing || isWeak || isForbidden) {
+        console.warn(`[CONFIG] ${name} is using a development-only fallback. Set a strong value before deployment.`);
+        return 'development-only-cookie-secret-change-before-production';
+    }
+
+    return value.trim();
+}
+
+const COOKIE_SECRET = readRequiredSecret('COOKIE_SECRET', {
+    minLength: 32,
+    forbiddenValues: [
+        'your-secret-key',
+        'your-very-secure-random-secret-key-123',
+        'development-only-cookie-secret-change-before-production'
+    ]
+});
+
+function readAdminUsername() {
+    const value = (process.env.ADMIN_USERNAME || '').trim().toLowerCase();
+    if (!value) {
+        if (isProduction) {
+            throw new Error('[CONFIG] ADMIN_USERNAME must be set in production.');
+        }
+        console.warn('[CONFIG] ADMIN_USERNAME is not set. Falling back to "goddy" for development only.');
+        return 'goddy';
+    }
+    return value;
+}
+
+const ADMIN_USERNAME = readAdminUsername();
+
+function getSessionCookieOptions() {
+    return {
+        httpOnly: true,
+        signed: true,
+        sameSite: isProduction ? 'none' : 'lax',
+        secure: isProduction,
+        maxAge: SESSION_TTL_MS
+    };
+}
+
+function createSessionId() {
+    return crypto.randomBytes(32).toString('hex');
+}
 
 // EmailJS Configuration
 const EMAILJS_CONFIG = {
@@ -42,15 +100,30 @@ app.use('/uploads', express.static('uploads'));
 
 // --- Database Initialization ---
 const initDb = async () => {
+    let connection;
     try {
-        const connection = await pool.getConnection();
+        connection = await pool.getConnection();
         
         // Users Table
         await connection.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(255) NOT NULL UNIQUE,
-                password VARCHAR(255) NOT NULL
+                password VARCHAR(255) NOT NULL,
+                role ENUM('admin', 'user') NOT NULL DEFAULT 'user'
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS sessions (
+                session_id VARCHAR(128) PRIMARY KEY,
+                username VARCHAR(255) NOT NULL,
+                role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+                expires_at DATETIME NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_sessions_username (username),
+                INDEX idx_sessions_expires_at (expires_at)
             )
         `);
 
@@ -121,12 +194,15 @@ const initDb = async () => {
             )
         `);
 
-        // Insert Default Admin if not exists
-        const [users] = await connection.query("SELECT * FROM users WHERE username = 'goddy'");
-        if (users.length === 0) {
-            const hashedPassword = bcrypt.hashSync('goddy123', 10);
-            await connection.query("INSERT INTO users (username, password) VALUES (?, ?)", ['goddy', hashedPassword]);
-            console.log("[DB] Default admin 'goddy' created.");
+        // Do not create default credentials in application startup.
+        // Use reset_admin.js with explicit ADMIN_USERNAME and ADMIN_PASSWORD when bootstrapping.
+        const [adminRows] = await connection.query("SELECT username FROM users WHERE username = ? LIMIT 1", [ADMIN_USERNAME]);
+        if (adminRows.length === 0) {
+            const message = "[DB] No admin user exists. Bootstrap one with reset_admin.js using explicit credentials.";
+            if (isProduction) {
+                throw new Error(message);
+            }
+            console.warn(message);
         }
 
         // Insert Default Settings if not exists
@@ -158,6 +234,7 @@ const initDb = async () => {
         }
 
         try {
+            await connection.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('admin', 'user') NOT NULL DEFAULT 'user' AFTER password");
             await connection.query("ALTER TABLE portfolio MODIFY image_url TEXT NOT NULL");
             await connection.query("ALTER TABLE services MODIFY image_url TEXT");
             await connection.query("ALTER TABLE testimonials MODIFY file_url TEXT");
@@ -168,10 +245,22 @@ const initDb = async () => {
             await connection.query("ALTER TABLE portfolio MODIFY id INT AUTO_INCREMENT");
         } catch(e) { console.log("[DB] Alter tables ignored:", e.message); }
 
-        connection.release();
+        try {
+            await connection.query('UPDATE users SET role = ? WHERE username = ?', ['admin', ADMIN_USERNAME]);
+        } catch (e) {
+            console.log("[DB] Admin role sync ignored:", e.message);
+        }
+
         console.log("[DB] Database initialized successfully.");
     } catch (err) {
         console.error("[DB] Initialization Error:", err);
+        if (isProduction) {
+            process.exit(1);
+        }
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 };
 
@@ -279,6 +368,35 @@ app.use(cookieParser(COOKIE_SECRET)); // Use signed cookies
 app.use(express.static('public'));
 // app.use('/uploads', express.static('uploads')); // No longer needed with Cloudinary
 
+app.use('/api', async (req, res, next) => {
+    const sessionId = req.signedCookies && req.signedCookies[SESSION_COOKIE_NAME];
+    if (!sessionId) return next();
+
+    try {
+        const [rows] = await pool.query(
+            'SELECT session_id, username, role, expires_at FROM sessions WHERE session_id = ? AND expires_at > NOW() LIMIT 1',
+            [sessionId]
+        );
+
+        if (rows.length === 0) {
+            res.clearCookie(SESSION_COOKIE_NAME, getSessionCookieOptions());
+            return next();
+        }
+
+        req.user = {
+            username: rows[0].username,
+            role: rows[0].role || 'user'
+        };
+        req.sessionId = rows[0].session_id;
+
+        await pool.query('UPDATE sessions SET last_seen = NOW() WHERE session_id = ?', [sessionId]);
+    } catch (err) {
+        console.error('[AUTH] Session hydration error:', err.message);
+    }
+
+    next();
+});
+
 // Rate Limiting
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -294,23 +412,21 @@ const contactLimiter = rateLimit({
 
 // Authentication Middleware
 const requireAuth = (req, res, next) => {
-    // Check for the signed cookies
-    const sessionToken = req.signedCookies && req.signedCookies.auth;
-    const username = req.signedCookies && req.signedCookies.username;
-
-    if (sessionToken === 'true' && username) {
-        // Bind the actual username to the request for identity-based authorization
-        req.user = { 
-            username: username,
-            // Only 'goddy' is treated as a master admin in this simplified RBAC
-            role: username === 'goddy' ? 'admin' : 'user' 
-        };
+    if (req.user) {
         return next();
     }
 
-    // Log the attempt for security monitoring
     console.warn(`[Security] Unauthorized access attempt to ${req.path} from IP: ${req.ip}`);
     res.status(401).json({ error: 'Authentication required. Please log in again.' });
+};
+
+const requireAdmin = (req, res, next) => {
+    if (req.user && req.user.role === 'admin') {
+        return next();
+    }
+
+    console.warn(`[Security] Forbidden admin access attempt to ${req.path} from IP: ${req.ip}`);
+    res.status(403).json({ error: 'Administrative privileges required.' });
 };
 
 // --- API Endpoints ---
@@ -327,20 +443,23 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         username = username.trim().toLowerCase();
         password = password.trim();
 
-        const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
+        const [users] = await pool.query("SELECT username, password, role FROM users WHERE username = ?", [username]);
         const user = users[0];
         
         if (user && await bcrypt.compare(password, user.password)) {
+            await pool.query('DELETE FROM sessions WHERE username = ?', [user.username]);
+
+            const sessionId = createSessionId();
+            const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+            const role = user.role || (user.username === ADMIN_USERNAME ? 'admin' : 'user');
+
+            await pool.query(
+                'INSERT INTO sessions (session_id, username, role, expires_at) VALUES (?, ?, ?, ?)',
+                [sessionId, user.username, role, expiresAt]
+            );
+
             console.log(`[AUTH] Access GRANTED for ${username}`);
-            const cookieOptions = { 
-                httpOnly: true, 
-                signed: true, 
-                sameSite: 'none',
-                secure: true,
-                maxAge: 24 * 60 * 60 * 1000 
-            };
-            res.cookie('auth', 'true', cookieOptions);
-            res.cookie('username', user.username, cookieOptions);
+            res.cookie(SESSION_COOKIE_NAME, sessionId, getSessionCookieOptions());
             res.json({ success: true });
         } else {
             console.warn(`[AUTH] Access DENIED for: ${username} - Invalid credentials`);
@@ -354,28 +473,64 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
 // Logout
 app.post('/api/logout', (req, res) => {
-    const cookieOptions = {
-        httpOnly: true,
-        signed: true,
-        sameSite: 'none',
-        secure: true
-    };
-    res.clearCookie('auth', cookieOptions);
-    res.clearCookie('username', cookieOptions);
-    res.json({ success: true });
+    (async () => {
+        try {
+            const sessionId = req.signedCookies && req.signedCookies[SESSION_COOKIE_NAME];
+            if (sessionId) {
+                await pool.query('DELETE FROM sessions WHERE session_id = ?', [sessionId]);
+            }
+        } catch (err) {
+            console.error('[AUTH] Logout cleanup error:', err.message);
+        } finally {
+            res.clearCookie(SESSION_COOKIE_NAME, getSessionCookieOptions());
+            res.json({ success: true });
+        }
+    })();
 });
 
 // Profile Update
 app.post('/api/profile', requireAuth, async (req, res) => {
     try {
-        const { password } = req.body;
-        if (!password || password.trim().length < 8) {
-            return res.status(400).json({ error: "Password must be at least 8 characters long." });
+        const { username, password } = req.body;
+        const updates = [];
+        const params = [];
+
+        if (username && username.trim()) {
+            const nextUsername = username.trim().toLowerCase();
+            if (nextUsername.length < 3) {
+                return res.status(400).json({ error: 'Username must be at least 3 characters long.' });
+            }
+
+            if (nextUsername !== req.user.username) {
+                const [existing] = await pool.query('SELECT username FROM users WHERE username = ?', [nextUsername]);
+                if (existing.length > 0) {
+                    return res.status(409).json({ error: 'Username already exists.' });
+                }
+                updates.push('username = ?');
+                params.push(nextUsername);
+            }
         }
 
-        const hashedPassword = await bcrypt.hash(password.trim(), 12); 
-        // Security: Users can only update their OWN password based on their session identity
-        await pool.query("UPDATE users SET password = ? WHERE username = ?", [hashedPassword, req.user.username]);
+        if (password && password.trim()) {
+            if (password.trim().length < 12) {
+                return res.status(400).json({ error: 'Password must be at least 12 characters long.' });
+            }
+            const hashedPassword = await bcrypt.hash(password.trim(), 12);
+            updates.push('password = ?');
+            params.push(hashedPassword);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ error: 'No profile changes were provided.' });
+        }
+
+        params.push(req.user.username);
+        await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE username = ?`, params);
+
+        if (username && username.trim() && username.trim().toLowerCase() !== req.user.username) {
+            await pool.query('UPDATE sessions SET username = ? WHERE username = ?', [username.trim().toLowerCase(), req.user.username]);
+            req.user.username = username.trim().toLowerCase();
+        }
         
         res.json({ success: true });
     } catch (err) {
@@ -402,7 +557,7 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-app.post('/api/settings', requireAuth, async (req, res) => {
+app.post('/api/settings', requireAdmin, async (req, res) => {
     try {
         const announcement = sanitize(req.body.announcement);
         const { showAnnouncement } = req.body;
@@ -417,7 +572,7 @@ app.post('/api/settings', requireAuth, async (req, res) => {
 // Get Portfolio Items
 app.get('/api/portfolio', async (req, res) => {
     try {
-        const isAdmin = req.signedCookies.auth === 'true';
+        const isAdmin = req.user && req.user.role === 'admin';
         let query = "SELECT * FROM portfolio";
         if (!isAdmin) {
             query += " WHERE visible = TRUE";
@@ -440,7 +595,7 @@ app.get('/api/portfolio', async (req, res) => {
 });
 
 // Add Portfolio Item (Protected) - Uses local file upload
-app.post('/api/portfolio', requireAuth, upload.single('image'), async (req, res) => {
+app.post('/api/portfolio', requireAdmin, upload.single('image'), async (req, res) => {
     try {
         const title = sanitize(req.body.title);
         const category = sanitize(req.body.category);
@@ -472,7 +627,7 @@ app.post('/api/portfolio', requireAuth, upload.single('image'), async (req, res)
 });
 
 // Toggle Portfolio Visibility
-app.patch('/api/portfolio/:id/visibility', requireAuth, async (req, res) => {
+app.patch('/api/portfolio/:id/visibility', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const { visible } = req.body;
@@ -485,7 +640,7 @@ app.patch('/api/portfolio/:id/visibility', requireAuth, async (req, res) => {
 });
 
 // Delete Portfolio Item
-app.delete('/api/portfolio/:id', requireAuth, async (req, res) => {
+app.delete('/api/portfolio/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         await pool.query("DELETE FROM portfolio WHERE id = ?", [id]);
@@ -501,7 +656,7 @@ app.delete('/api/portfolio/:id', requireAuth, async (req, res) => {
 // Get Services (public sees visible only, admin sees all)
 app.get('/api/services', async (req, res) => {
     try {
-        const isAdmin = req.signedCookies && req.signedCookies.auth === 'true';
+        const isAdmin = req.user && req.user.role === 'admin';
         let query = "SELECT * FROM services";
         if (!isAdmin) {
             query += " WHERE visible = TRUE";
@@ -525,7 +680,7 @@ app.get('/api/services', async (req, res) => {
 });
 
 // Add Service (Protected, with local file upload)
-app.post('/api/services', requireAuth, upload.single('image'), async (req, res) => {
+app.post('/api/services', requireAdmin, upload.single('image'), async (req, res) => {
     try {
         const name = sanitize(req.body.name);
         const description = sanitize(req.body.description);
@@ -557,7 +712,7 @@ app.post('/api/services', requireAuth, upload.single('image'), async (req, res) 
 });
 
 // Update Service (Protected)
-app.put('/api/services/:id', requireAuth, upload.single('image'), async (req, res) => {
+app.put('/api/services/:id', requireAdmin, upload.single('image'), async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const name = sanitize(req.body.name);
@@ -589,7 +744,7 @@ app.put('/api/services/:id', requireAuth, upload.single('image'), async (req, re
 });
 
 // Toggle Service Visibility
-app.patch('/api/services/:id/visibility', requireAuth, async (req, res) => {
+app.patch('/api/services/:id/visibility', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const { visible } = req.body;
@@ -602,7 +757,7 @@ app.patch('/api/services/:id/visibility', requireAuth, async (req, res) => {
 });
 
 // Delete Service
-app.delete('/api/services/:id', requireAuth, async (req, res) => {
+app.delete('/api/services/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         await pool.query("DELETE FROM services WHERE id = ?", [id]);
@@ -617,7 +772,7 @@ app.delete('/api/services/:id', requireAuth, async (req, res) => {
 
 app.get('/api/testimonials', async (req, res) => {
     try {
-        const isAdmin = req.signedCookies && req.signedCookies.auth === 'true';
+        const isAdmin = req.user && req.user.role === 'admin';
         let query = "SELECT * FROM testimonials";
         if (!isAdmin) {
             query += " WHERE approved = TRUE AND visible = TRUE";
@@ -668,7 +823,7 @@ app.post('/api/testimonials', upload.single('project_file'), contactLimiter, asy
     }
 });
 
-app.put('/api/testimonials/:id', requireAuth, upload.single('project_file'), async (req, res) => {
+app.put('/api/testimonials/:id', requireAdmin, upload.single('project_file'), async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const { name, message, service, approved, visible } = req.body;
@@ -697,7 +852,7 @@ app.put('/api/testimonials/:id', requireAuth, upload.single('project_file'), asy
     }
 });
 
-app.delete('/api/testimonials/:id', requireAuth, async (req, res) => {
+app.delete('/api/testimonials/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         await pool.query("DELETE FROM testimonials WHERE id = ?", [id]);
@@ -708,7 +863,7 @@ app.delete('/api/testimonials/:id', requireAuth, async (req, res) => {
     }
 });
 
-app.patch('/api/testimonials/:id', requireAuth, async (req, res) => {
+app.patch('/api/testimonials/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const updates = [];
@@ -765,7 +920,7 @@ app.post('/api/requests', contactLimiter, async (req, res) => {
 });
 
 // Get Service Requests
-app.get('/api/requests', requireAuth, async (req, res) => {   
+app.get('/api/requests', requireAdmin, async (req, res) => {   
     try {
         const [requests] = await pool.query("SELECT * FROM requests ORDER BY id DESC");
         res.json(requests);
@@ -776,7 +931,7 @@ app.get('/api/requests', requireAuth, async (req, res) => {
 });
 
 // Delete Service Request
-app.delete('/api/requests/:id', requireAuth, async (req, res) => {
+app.delete('/api/requests/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         await pool.query("DELETE FROM requests WHERE id = ?", [id]);
@@ -787,56 +942,11 @@ app.delete('/api/requests/:id', requireAuth, async (req, res) => {
     }
 });
 
-// --- Fix DB endpoint (debug) ---
-app.get('/api/fix-db', requireAuth, async (req, res) => {
-    // Only 'admin' role can pass
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Access Denied: Administrative privileges required.' });
-    }
-
-    try {
-        const [rows] = await pool.query('SELECT * FROM requests');
-        
-        // Truncate table completely to wipe all invalid data and reset auto_increment state
-        await pool.query('TRUNCATE TABLE requests');
-        
-        // Try altering again
-        await pool.query('ALTER TABLE requests MODIFY id INT AUTO_INCREMENT');
-
-        res.json({ success: true, message: 'Database maintenance completed successfully.', data: rows });
-    } catch (err) {
-        console.error("[Security] Maintenance failed:", err);
-        res.status(500).json({ error: 'Maintenance failed.' });
-    }
-});
-
-// --- Migration status endpoint (debug) ---
-app.get('/api/migration-status', requireAuth, async (req, res) => {
-  if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access Denied.' });
-  }
-  try {
-    const tables = ['users','portfolio','services','testimonials','requests','announcements','registration_requests','materials','assessments','results','enrollments','activity_log','courses'];
-    const placeholders = tables.map(() => '?').join(',');
-    const [rows] = await pool.query(
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN (${placeholders})`,
-      tables
-    );
-    const existing = rows.map(r => r.TABLE_NAME || r.table_name);
-    const status = tables.reduce((acc, tbl) => {
-      acc[tbl] = existing.includes(tbl);
-      return acc;
-    }, {});
-    res.json({ migrationComplete: Object.values(status).every(v => v), tables: status });
-  } catch (err) {
-    console.error('[Security] Migration Status error:', err);
-    res.status(500).json({ error: 'Internal error' });
-  }
-});
-
 app.get('/api/auth/check', (req, res) => {
-    const isAuthenticated = !!(req.signedCookies && req.signedCookies.auth === 'true');
-    res.json({ authenticated: isAuthenticated });
+    res.json({
+        authenticated: !!req.user,
+        user: req.user || null
+    });
 });
 
 // --- Global Error Handling Middleware ---
