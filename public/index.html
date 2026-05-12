@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,9 @@
     <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap"
+        rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -33,16 +36,20 @@
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 1;
         }
+
         .service-card:hover {
             transform: translateY(-12px) scale(1.05);
             z-index: 10;
         }
+
         .portfolio-item:hover .overlay {
             opacity: 1;
         }
+
         .nav-link {
             position: relative;
         }
+
         .nav-link::after {
             content: '';
             position: absolute;
@@ -53,24 +60,37 @@
             background-color: #ffffff;
             transition: width 0.3s ease;
         }
+
         .nav-link:hover::after {
             width: 100%;
         }
+
         .active-link::after {
             width: 100%;
         }
+
         .animate-fade-in {
             animation: fadeIn 0.8s ease-in;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .scroll-to-top {
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
         }
+
         .scroll-to-top.visible {
             opacity: 1;
             visibility: visible;
@@ -84,11 +104,13 @@
             display: block !important;
             visibility: hidden;
         }
+
         #announcement-bar.bar-visible {
             transform: translateY(0);
             opacity: 1;
             visibility: visible;
         }
+
         .announcement-container {
             overflow: hidden;
             white-space: nowrap;
@@ -96,23 +118,32 @@
             display: flex;
             justify-content: flex-start;
         }
+
         .announcement-scroll {
             display: inline-block;
             transition: transform 0.5s ease-out;
             padding-left: 1rem;
         }
+
         .announcement-active {
             animation: marquee 12s linear 3;
         }
+
         @keyframes marquee {
-            0% { transform: translateX(100vw); }
-            100% { transform: translateX(-100%); }
+            0% {
+                transform: translateX(100vw);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
         }
-        
+
         /* Flip Card styles */
         .flip-container {
             perspective: 1000px;
         }
+
         .flip-inner {
             position: relative;
             width: 100%;
@@ -120,15 +151,19 @@
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
         }
+
         .flip-inner.is-flipped {
             transform: rotateY(180deg);
         }
-        .flip-front, .flip-back {
+
+        .flip-front,
+        .flip-back {
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
             width: 100%;
             border-radius: 0.5rem;
         }
+
         .flip-back {
             position: absolute;
             top: 0;
@@ -136,28 +171,50 @@
             height: 100%;
             transform: rotateY(180deg);
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ffefc1; border-radius: 4px; }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #ffefc1;
+            border-radius: 4px;
+        }
 
         /* Layout smooth transition */
-        #main-nav, #content {
+        #main-nav,
+        #content {
             transition: top 0.8s cubic-bezier(0.4, 0, 0.2, 1), padding-top 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Carousel Animation */
         @keyframes scrollCarousel {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(calc(-50% - 0.75rem)); } /* -50% width minus half of the gap space */
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(calc(-50% - 0.75rem));
+            }
+
+            /* -50% width minus half of the gap space */
         }
+
         .carousel-track {
             display: flex;
             width: max-content;
             animation: scrollCarousel 40s linear infinite;
         }
+
         .carousel-track:hover {
             animation-play-state: paused;
         }
+
         .app-alert-container {
             position: fixed;
             top: 1.25rem;
@@ -171,6 +228,7 @@
             width: min(92vw, 34rem);
             pointer-events: none;
         }
+
         .app-alert {
             width: 100%;
             background: #ffefc1;
@@ -186,25 +244,40 @@
             animation: appAlertIn 0.25s ease-out;
             pointer-events: auto;
         }
+
         .app-alert.is-leaving {
             animation: appAlertOut 0.2s ease-in forwards;
         }
+
         @keyframes appAlertIn {
-            from { opacity: 0; transform: translateY(-0.75rem) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+                opacity: 0;
+                transform: translateY(-0.75rem) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
+
         @keyframes appAlertOut {
-            to { opacity: 0; transform: translateY(-0.5rem) scale(0.98); }
+            to {
+                opacity: 0;
+                transform: translateY(-0.5rem) scale(0.98);
+            }
         }
     </style>
 </head>
+
 <body class="font-poppins bg-light text-dark">
     <div id="appAlertContainer" class="app-alert-container" aria-live="polite" aria-atomic="true"></div>
 
     <!-- Announcement Bar -->
     <div id="announcement-bar" class="bg-[#d30303] text-white py-2 fixed w-full z-[60] shadow-md">
         <div class="announcement-container">
-            <span id="announcement-text" class="announcement-scroll px-4 text-sm font-bold uppercase tracking-wider"></span>
+            <span id="announcement-text"
+                class="announcement-scroll px-4 text-sm font-bold uppercase tracking-wider"></span>
         </div>
     </div>
 
@@ -218,27 +291,39 @@
                     </div>
                 </div>
                 <div class="hidden md:flex items-center space-x-8">
-                    <button onclick="showPage('home')" class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">Home</button>
-                    <button onclick="showPage('about')" class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">About</button>
-                    <button onclick="showPage('services')" class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">Services</button>
-                    <button onclick="showPage('portfolio')" class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">Portfolio</button>
-                    <button onclick="showPage('contact')" class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">Contact</button>
+                    <button onclick="showPage('home')"
+                        class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">Home</button>
+                    <button onclick="showPage('about')"
+                        class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">About</button>
+                    <button onclick="showPage('services')"
+                        class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">Services</button>
+                    <button onclick="showPage('portfolio')"
+                        class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">Portfolio</button>
+                    <button onclick="showPage('contact')"
+                        class="nav-link text-sm font-medium text-[#d30303] hover:text-[#ffefc1] transition">Contact</button>
                 </div>
                 <div class="flex items-center md:hidden">
-                    <button id="mobile-menu-button" class="text-[#d30303] hover:text-[#ffefc1] focus:outline-none transition">
+                    <button id="mobile-menu-button"
+                        class="text-[#d30303] hover:text-[#ffefc1] focus:outline-none transition">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                 </div>
             </div>
         </div>
         <!-- Mobile menu -->
-        <div id="mobile-menu" class="hidden md:hidden bg-[#0a0a0a]/90 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl mt-2 overflow-hidden mx-auto">
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-[#0a0a0a]/90 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl mt-2 overflow-hidden mx-auto">
             <div class="px-3 pt-3 pb-4 space-y-1">
-                <button onclick="showPage('home')" class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">Home</button>
-                <button onclick="showPage('about')" class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">About</button>
-                <button onclick="showPage('services')" class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">Services</button>
-                <button onclick="showPage('portfolio')" class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">Portfolio</button>
-                <button onclick="showPage('contact')" class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">Contact</button>
+                <button onclick="showPage('home')"
+                    class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">Home</button>
+                <button onclick="showPage('about')"
+                    class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">About</button>
+                <button onclick="showPage('services')"
+                    class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">Services</button>
+                <button onclick="showPage('portfolio')"
+                    class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">Portfolio</button>
+                <button onclick="showPage('contact')"
+                    class="block w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-[#d30303] hover:bg-white/10 hover:text-[#ffefc1] transition">Contact</button>
             </div>
         </div>
     </nav>
@@ -251,33 +336,52 @@
             <div class="min-h-screen flex items-center justify-center relative w-full">
                 <!-- Slideshow Background -->
                 <div id="hero-slideshow" class="absolute inset-0 w-full h-full z-0">
-                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1920&auto=format&fit=crop')"></div>
-                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('https://images.unsplash.com/photo-1626785774573-4b799314346d?q=80&w=1920&auto=format&fit=crop')"></div>
-                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop')"></div>
-                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop')"></div>
+                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-100"
+                        style="background-image: url('https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1920&auto=format&fit=crop')">
+                    </div>
+                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0"
+                        style="background-image: url('https://images.unsplash.com/photo-1626785774573-4b799314346d?q=80&w=1920&auto=format&fit=crop')">
+                    </div>
+                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0"
+                        style="background-image: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop')">
+                    </div>
+                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0"
+                        style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop')">
+                    </div>
                 </div>
-                
+
                 <!-- Gradient Overlay -->
-                <div class="absolute inset-0 z-0 pointer-events-none" style="background: linear-gradient(rgba(10, 37, 64, 0.8), rgba(10, 37, 64, 0.9));"></div>
+                <div class="absolute inset-0 z-0 pointer-events-none"
+                    style="background: linear-gradient(rgba(10, 37, 64, 0.8), rgba(10, 37, 64, 0.9));"></div>
 
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
                     <div class="animate-fade-in flex flex-col justify-center items-center min-h-[300px]">
-                        <h2 id="type-line-1" class="text-xl md:text-2xl font-extrabold text-secondary mb-2 tracking-widest uppercase h-8 md:h-10 whitespace-pre-wrap"></h2>
-                        <h3 id="type-line-2" class="text-sm md:text-base font-bold text-white mb-10 tracking-wide uppercase h-10 md:h-6 whitespace-pre-wrap"></h3>
-                        
-                        <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight flex justify-center flex-wrap gap-x-0 h-24 md:h-[72px]">
+                        <h2 id="type-line-1"
+                            class="text-xl md:text-2xl font-extrabold text-secondary mb-2 tracking-widest uppercase h-8 md:h-10 whitespace-pre-wrap">
+                        </h2>
+                        <h3 id="type-line-2"
+                            class="text-sm md:text-base font-bold text-white mb-10 tracking-wide uppercase h-10 md:h-6 whitespace-pre-wrap">
+                        </h3>
+
+                        <h1
+                            class="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight flex justify-center flex-wrap gap-x-0 h-24 md:h-[72px]">
                             <span id="type-line-3a" class="whitespace-pre-wrap"></span>
                             <span id="type-line-3b" class="text-secondary whitespace-pre-wrap"></span>
                             <span id="type-line-3c" class="whitespace-pre-wrap"></span>
                         </h1>
-                        
-                        <p id="type-line-4" class="text-xl md:text-2xl text-accent mb-10 max-w-3xl mx-auto h-[56px] md:h-[64px] whitespace-pre-wrap"></p>
-                        
-                        <div id="hero-buttons" class="flex flex-col sm:flex-row justify-center gap-4 opacity-0 scale-75 transition-all duration-700 pointer-events-none mt-2">
-                            <button onclick="showPage('portfolio')" class="bg-transparent border-2 border-secondary text-dark hover:bg-secondary hover:text-dark font-bold py-3 px-8 rounded-full text-lg transition duration-300 transform hover:scale-105">
+
+                        <p id="type-line-4"
+                            class="text-xl md:text-2xl text-accent mb-10 max-w-3xl mx-auto h-[56px] md:h-[64px] whitespace-pre-wrap">
+                        </p>
+
+                        <div id="hero-buttons"
+                            class="flex flex-col sm:flex-row justify-center gap-4 opacity-0 scale-75 transition-all duration-700 pointer-events-none mt-2">
+                            <button onclick="showPage('portfolio')"
+                                class="bg-transparent border-2 border-secondary text-dark hover:bg-secondary hover:text-dark font-bold py-3 px-8 rounded-full text-lg transition duration-300 transform hover:scale-105">
                                 View Our Work
                             </button>
-                            <button onclick="showPage('contact')" class="border-2 border-secondary text-secondary hover:bg-secondary hover:text-dark font-bold py-3 px-8 rounded-full text-lg transition duration-300">
+                            <button onclick="showPage('contact')"
+                                class="border-2 border-secondary text-secondary hover:bg-secondary hover:text-dark font-bold py-3 px-8 rounded-full text-lg transition duration-300">
                                 Get In Touch
                             </button>
                         </div>
@@ -291,7 +395,9 @@
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
                         <h2 class="text-3xl md:text-5xl font-bold text-primary mb-6">What We Do 🤔</h2>
                         <p class="text-gray-600 max-w-3xl mx-auto text-lg leading-relaxed">
-                            At Goddy Graphix, we do more than just design. We craft compelling visual narratives that captivate audiences and elevate your brand. From bold identities to seamless digital experiences, our creativity knows no bounds. Dive into our dynamic stream of work below.
+                            At Goddy Graphix, we do more than just design. We craft compelling visual narratives that
+                            captivate audiences and elevate your brand. From bold identities to seamless digital
+                            experiences, our creativity knows no bounds. Dive into our dynamic stream of work below.
                         </p>
                         <div class="w-20 h-1 bg-secondary mx-auto mt-8"></div>
                     </div>
@@ -300,18 +406,38 @@
                     <div class="carousel-container overflow-hidden w-full py-4 -mb-8">
                         <div class="carousel-track gap-6 px-3">
                             <!-- Original set of images -->
-                            <img src="https://images.unsplash.com/photo-1626785774573-4b799314346d?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 1">
-                            <img src="https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 2">
-                            <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 3">
-                            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 4">
-                            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 5">
-                            
+                            <img src="https://images.unsplash.com/photo-1626785774573-4b799314346d?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 1">
+                            <img src="https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 2">
+                            <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 3">
+                            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 4">
+                            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 5">
+
                             <!-- Duplicate set for seamless infinite loop -->
-                            <img src="https://images.unsplash.com/photo-1626785774573-4b799314346d?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 1">
-                            <img src="https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 2">
-                            <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 3">
-                            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 4">
-                            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop" class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90" onclick="openImageModal(this.src)" alt="Creative Design 5">
+                            <img src="https://images.unsplash.com/photo-1626785774573-4b799314346d?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 1">
+                            <img src="https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 2">
+                            <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 3">
+                            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 4">
+                            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop"
+                                class="w-[400px] h-72 object-cover rounded-xl shadow-md cursor-pointer hover:shadow-2xl transition duration-300 transform hover:-translate-y-2 hover:opacity-90"
+                                onclick="openImageModal(this.src)" alt="Creative Design 5">
                         </div>
                     </div>
                 </div>
@@ -323,9 +449,11 @@
                     <div class="text-center mb-10">
                         <h2 class="text-3xl md:text-5xl font-bold text-[#d30303] mb-4">Client Testimonials 💬</h2>
                         <div class="w-20 h-1 bg-[#d30303] mx-auto mb-8"></div>
-                        <p class="text-[#d30303]/80 max-w-2xl mx-auto mb-8">Don't just take our word for it. Hear from our incredible clients about how Goddy Graphix transformed their vision.</p>
-                        
-                        <button onclick="openAddTestimonialsModal()" class="bg-[#d30303] hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1">
+                        <p class="text-[#d30303]/80 max-w-2xl mx-auto mb-8">Don't just take our word for it. Hear from
+                            our incredible clients about how Goddy Graphix transformed their vision.</p>
+
+                        <button onclick="openAddTestimonialsModal()"
+                            class="bg-[#d30303] hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1">
                             <i class="fas fa-plus mr-2"></i> Add a Testimony
                         </button>
                     </div>
@@ -338,7 +466,8 @@
                     </div>
 
                     <div id="seeMoreTestimonialsBtn" class="text-center mt-12 hidden">
-                        <button onclick="toggleHiddenTestimonials()" class="bg-transparent border-2 border-[#d30303] text-[#d30303] hover:bg-[#d30303] hover:text-white font-bold py-3 px-8 rounded-full transition duration-300">
+                        <button onclick="toggleHiddenTestimonials()"
+                            class="bg-transparent border-2 border-[#d30303] text-[#d30303] hover:bg-[#d30303] hover:text-white font-bold py-3 px-8 rounded-full transition duration-300">
                             See More Testimonials
                         </button>
                     </div>
@@ -353,33 +482,39 @@
                     <h2 class="text-3xl md:text-4xl font-bold text-primary mb-4">About Goddy Graphix</h2>
                     <div class="w-20 h-1 bg-secondary mx-auto"></div>
                 </div>
-                
+
                 <div class="flex flex-col lg:flex-row items-center gap-12">
                     <div class="lg:w-1/2">
                         <div class="relative">
-                            <img src="GoddyGraphix.jpeg" alt="About Goddy Graphix" class="rounded-lg shadow-2xl w-full max-w-[520px] h-[416px] object-cover">
+                            <img src="GoddyGraphix.jpeg" alt="About Goddy Graphix"
+                                class="rounded-lg shadow-2xl w-full max-w-[520px] h-[416px] object-cover">
                             <div class="absolute -bottom-6 -right-6 bg-primary p-6 rounded-lg shadow-xl">
                                 <div class="text-3xl font-bold text-white">5+</div>
                                 <div class="text-white">Years Experience</div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="lg:w-1/2">
                         <h3 class="text-2xl font-bold text-primary mb-6">We Create Visual Stories That Inspire</h3>
                         <p class="text-secondary mb-6 leading-relaxed">
-                            Founded in the heart of Ghana, Goddy Graphix is a premier graphic design agency dedicated to transforming ideas into stunning visual experiences. Our team of passionate designers brings creativity, innovation, and strategic thinking to every project we undertake.
+                            Founded in the heart of Ghana, Goddy Graphix is a premier graphic design agency dedicated to
+                            transforming ideas into stunning visual experiences. Our team of passionate designers brings
+                            creativity, innovation, and strategic thinking to every project we undertake.
                         </p>
                         <p class="text-secondary mb-8 leading-relaxed">
-                            With over 5 years of experience serving businesses across Ghana and beyond, we understand the unique challenges facing local enterprises and provide tailored solutions that drive growth and success.
+                            With over 5 years of experience serving businesses across Ghana and beyond, we understand
+                            the unique challenges facing local enterprises and provide tailored solutions that drive
+                            growth and success.
                         </p>
-                        
+
                         <div class="grid grid-cols-2 gap-6">
                             <div class="flex items-start">
                                 <i class="fas fa-check-circle text-secondary text-2xl mt-1 mr-3"></i>
                                 <div>
                                     <h4 class="font-semibold text-primary">Local Expertise</h4>
-                                    <p class="text-gray-600 text-sm">Deep understanding of Ghanaian markets and cultures</p>
+                                    <p class="text-gray-600 text-sm">Deep understanding of Ghanaian markets and cultures
+                                    </p>
                                 </div>
                             </div>
                             <div class="flex items-start">
@@ -400,7 +535,8 @@
                                 <i class="fas fa-check-circle text-secondary text-2xl mt-1 mr-3"></i>
                                 <div>
                                     <h4 class="font-semibold text-primary">Client-Centric</h4>
-                                    <p class="text-gray-600 text-sm">Personalized approach to every client relationship</p>
+                                    <p class="text-gray-600 text-sm">Personalized approach to every client relationship
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -414,7 +550,8 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
                     <h2 class="text-3xl md:text-4xl font-bold text-primary mb-4">Our Services</h2>
-                    <p class="text-secondary max-w-2xl mx-auto">Comprehensive graphic design solutions tailored to your business needs</p>
+                    <p class="text-secondary max-w-2xl mx-auto">Comprehensive graphic design solutions tailored to your
+                        business needs</p>
                     <div class="w-20 h-1 bg-secondary mx-auto mt-4"></div>
                 </div>
 
@@ -433,13 +570,15 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
                     <h2 class="text-3xl md:text-4xl font-bold text-primary mb-4">Our Portfolio</h2>
-                    <p class="text-secondary max-w-2xl mx-auto">Explore our latest projects and see how we've helped businesses thrive</p>
+                    <p class="text-secondary max-w-2xl mx-auto">Explore our latest projects and see how we've helped
+                        businesses thrive</p>
                     <div class="w-20 h-1 bg-secondary mx-auto mt-4"></div>
                 </div>
-                
+
                 <div id="portfolio-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <!-- Dynamic Portfolio Items will be injected here -->
-                    <p class="text-gray-500 col-span-full text-center py-10">No projects to display yet. Check back soon!</p>
+                    <p class="text-gray-500 col-span-full text-center py-10">No projects to display yet. Check back
+                        soon!</p>
                 </div>
             </div>
         </section>
@@ -449,36 +588,45 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
                     <h2 class="text-3xl md:text-4xl font-bold text-primary mb-4">Get In Touch</h2>
-                    <p class="text-secondary max-w-2xl mx-auto">Ready to elevate your brand? Let's discuss your next project.</p>
+                    <p class="text-secondary max-w-2xl mx-auto">Ready to elevate your brand? Let's discuss your next
+                        project.</p>
                     <div class="w-20 h-1 bg-secondary mx-auto mt-4"></div>
                 </div>
-                
+
                 <div class="flex flex-col lg:flex-row gap-12">
                     <div class="lg:w-1/2">
-                        <form id="contactForm" class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-xl p-8">
+                        <form id="contactForm"
+                            class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-xl p-8">
                             <div class="mb-6">
                                 <label class="block text-secondary text-sm font-bold mb-2" for="name">
                                     Full Name
                                 </label>
-                                <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white" placeholder="Your Name" required>
+                                <input type="text" id="name" name="name"
+                                    class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white"
+                                    placeholder="Your Name" required>
                             </div>
                             <div class="mb-6">
                                 <label class="block text-secondary text-sm font-bold mb-2" for="email">
                                     Email Address
                                 </label>
-                                <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white" placeholder="your.email@example.com" required>
+                                <input type="email" id="email" name="email"
+                                    class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white"
+                                    placeholder="your.email@example.com" required>
                             </div>
                             <div class="mb-6">
                                 <label class="block text-secondary text-sm font-bold mb-2" for="phone">
                                     Phone Number
                                 </label>
-                                <input type="tel" id="phone" name="phone" class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white" placeholder="+233 XX XXX XXXX">
+                                <input type="tel" id="phone" name="phone"
+                                    class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white"
+                                    placeholder="+233 XX XXX XXXX">
                             </div>
                             <div class="mb-6">
                                 <label class="block text-secondary text-sm font-bold mb-2" for="service">
                                     Service Required
                                 </label>
-                                <select id="service" name="service" class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-secondary">
+                                <select id="service" name="service"
+                                    class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-secondary">
                                     <option value="General Inquiry">General Inquiry</option>
                                     <option value="Brand Identity">Brand Identity Design</option>
                                     <option value="Digital Design">Digital Design</option>
@@ -492,37 +640,46 @@
                                 <label class="block text-secondary text-sm font-bold mb-2" for="subject">
                                     Subject
                                 </label>
-                                <input type="text" id="subject" name="subject" class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white" placeholder="Project Inquiry">
+                                <input type="text" id="subject" name="subject"
+                                    class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white"
+                                    placeholder="Project Inquiry">
                             </div>
                             <div class="mb-6">
                                 <label class="block text-secondary text-sm font-bold mb-2" for="message">
                                     Message
                                 </label>
-                                <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white" placeholder="Tell us about your project..." required></textarea>
+                                <textarea id="message" name="message" rows="5"
+                                    class="w-full px-4 py-3 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-[#2a2a2a] text-white"
+                                    placeholder="Tell us about your project..." required></textarea>
                             </div>
-                            <button type="submit" class="w-full bg-secondary hover:bg-yellow-600 text-dark font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]">
+                            <button type="submit"
+                                class="w-full bg-secondary hover:bg-yellow-600 text-dark font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]">
                                 Send Message
                             </button>
                         </form>
                     </div>
-                    
+
                     <div class="lg:w-1/2">
-                        <div class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-xl p-8 h-full">
+                        <div
+                            class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-xl p-8 h-full">
                             <h3 class="text-2xl font-bold text-primary mb-6">Contact Information</h3>
-                            
+
                             <div class="space-y-6 mb-8">
                                 <div class="flex items-start">
-                                    <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                                         <i class="fas fa-map-marker-alt text-white text-xl"></i>
                                     </div>
                                     <div>
                                         <h4 class="font-bold text-secondary">Our Location</h4>
-                                        <p class="text-secondary opacity-90">Accra, Ghana<br>Adenta-Dodowa <br> Off Regimanuel Road</p>
+                                        <p class="text-secondary opacity-90">Accra, Ghana<br>Adenta-Dodowa <br> Off
+                                            Regimanuel Road</p>
                                     </div>
                                 </div>
-                                
+
                                 <div class="flex items-start">
-                                    <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                                         <i class="fas fa-phone-alt text-white text-xl"></i>
                                     </div>
                                     <div>
@@ -530,9 +687,10 @@
                                         <p class="text-secondary opacity-90">+233 59 746 6615<br>+233 50 572 8344</p>
                                     </div>
                                 </div>
-                                
+
                                 <div class="flex items-start">
-                                    <div class="w-12 h-12 bg-light rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 bg-light rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                                         <i class="fas fa-phone-alt text-white text-xl"></i>
                                     </div>
                                     <div>
@@ -540,41 +698,50 @@
                                         <p class="text-dark">+233 59 746 6615<br>+233 50 572 8344</p>
                                     </div>
                                 </div>
-                                
+
                                 <div class="flex items-start">
-                                    <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                                         <i class="fas fa-envelope text-white text-xl"></i>
                                     </div>
                                     <div>
                                         <h4 class="font-bold text-secondary">Email Address</h4>
-                                        <p class="text-secondary opacity-90"><a href="mailto:laryeamel06@gmail.com" class="hover:text-secondary transition duration-300">laryeamel06@gmail.com</a></p>
+                                        <p class="text-secondary opacity-90"><a href="mailto:laryeamel06@gmail.com"
+                                                class="hover:text-secondary transition duration-300">laryeamel06@gmail.com</a>
+                                        </p>
                                     </div>
                                 </div>
-                                
+
                                 <div class="flex items-start">
-                                    <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                                         <i class="fas fa-clock text-white text-xl"></i>
                                     </div>
                                     <div>
                                         <h4 class="font-bold text-secondary">Working Hours</h4>
-                                        <p class="text-secondary opacity-90">Monday - Friday: 9am - 6pm<br>Saturday: 10am - 4pm</p>
+                                        <p class="text-secondary opacity-90">Monday - Friday: 9am - 6pm<br>Saturday:
+                                            10am - 4pm</p>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="mt-8">
                                 <h4 class="font-bold text-primary mb-4">Follow Us</h4>
                                 <div class="flex space-x-4">
-                                    <a href="#" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-secondary transition duration-300">
+                                    <a href="#"
+                                        class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-secondary transition duration-300">
                                         <i class="fab fa-facebook-f"></i>
                                     </a>
-                                    <a href="#" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-secondary transition duration-300">
+                                    <a href="#"
+                                        class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-secondary transition duration-300">
                                         <i class="fab fa-twitter"></i>
                                     </a>
-                                    <a href="#" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-secondary transition duration-300">
+                                    <a href="#"
+                                        class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-secondary transition duration-300">
                                         <i class="fab fa-instagram"></i>
                                     </a>
-                                    <a href="#" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-secondary transition duration-300">
+                                    <a href="#"
+                                        class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white hover:bg-secondary transition duration-300">
                                         <i class="fab fa-linkedin-in"></i>
                                     </a>
                                 </div>
@@ -612,69 +779,96 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <div>
                     <h4 class="font-bold text-lg mb-4">Quick Links</h4>
                     <ul class="space-y-2">
-                        <li><button onclick="showPage('home')" class="text-gray-300 hover:text-secondary transition duration-300">Home</button></li>
-                        <li><button onclick="showPage('about')" class="text-gray-300 hover:text-secondary transition duration-300">About Us</button></li>
-                        <li><button onclick="showPage('services')" class="text-gray-300 hover:text-secondary transition duration-300">Services</button></li>
-                        <li><button onclick="showPage('portfolio')" class="text-gray-300 hover:text-secondary transition duration-300">Portfolio</button></li>
-                        <li><button onclick="showPage('contact')" class="text-gray-300 hover:text-secondary transition duration-300">Contact</button></li>
-                        <li><a href="admin.html" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-secondary transition duration-300"><i class="fas fa-lock mr-2 text-xs"></i>Admin Panel</a></li>
+                        <li><button onclick="showPage('home')"
+                                class="text-gray-300 hover:text-secondary transition duration-300">Home</button></li>
+                        <li><button onclick="showPage('about')"
+                                class="text-gray-300 hover:text-secondary transition duration-300">About Us</button>
+                        </li>
+                        <li><button onclick="showPage('services')"
+                                class="text-gray-300 hover:text-secondary transition duration-300">Services</button>
+                        </li>
+                        <li><button onclick="showPage('portfolio')"
+                                class="text-gray-300 hover:text-secondary transition duration-300">Portfolio</button>
+                        </li>
+                        <li><button onclick="showPage('contact')"
+                                class="text-gray-300 hover:text-secondary transition duration-300">Contact</button></li>
+                        <li><a href="admin.html" target="_blank" rel="noopener noreferrer"
+                                class="text-gray-300 hover:text-secondary transition duration-300"><i
+                                    class="fas fa-lock mr-2 text-xs"></i>Admin Panel</a></li>
                     </ul>
                 </div>
-                
+
                 <div>
                     <h4 class="font-bold text-lg mb-4">Services</h4>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">Brand Identity</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">Digital Design</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">Print Design</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">Motion Graphics</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">E-commerce Design</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">Brand
+                                Identity</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">Digital
+                                Design</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">Print
+                                Design</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">Motion
+                                Graphics</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-secondary transition duration-300">E-commerce
+                                Design</a></li>
                     </ul>
                 </div>
             </div>
-            
+
             <div class="border-t border-red-800 mt-12 pt-8 text-center text-white">
-                <p>&copy; 2026 Goddy Graphix. All rights reserved. | Developed by <button onclick="showPage('about')" class="hover:text-secondary transition duration-300">Prince Ala-Adjetey</button> <a href="admin.html" target="_blank" rel="noopener noreferrer" class="ml-2 text-white/50 hover:text-secondary transition duration-300" title="Admin Login"><i class="fas fa-lock text-xs"></i></a></p>
+                <p>&copy; 2026 Goddy Graphix. All rights reserved. | Developed by <button onclick="showPage('about')"
+                        class="hover:text-secondary transition duration-300">Prince Ala-Adjetey</button> <a
+                        href="admin.html" target="_blank" rel="noopener noreferrer"
+                        class="ml-2 text-white/50 hover:text-secondary transition duration-300" title="Admin Login"><i
+                            class="fas fa-lock text-xs"></i></a></p>
             </div>
         </div>
     </footer>
 
     <!-- WhatsApp Floating Button -->
-    <a href="https://wa.me/233596304385" target="_blank" class="fixed bottom-24 right-8 z-[50] bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 group">
+    <a href="https://wa.me/233596304385" target="_blank"
+        class="fixed bottom-24 right-8 z-[50] bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 group">
         <i class="fab fa-whatsapp text-3xl"></i>
-        <span class="absolute right-16 bg-[#25D366] text-white px-3 py-1 rounded-lg text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+        <span
+            class="absolute right-16 bg-[#25D366] text-white px-3 py-1 rounded-lg text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
             Chat with us!
         </span>
         <div class="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20 -z-10"></div>
     </a>
 
     <!-- Scroll to Top Button -->
-    <button id="scrollToTop" class="scroll-to-top fixed bottom-8 right-8 bg-secondary text-dark rounded-full p-3 shadow-lg hover:bg-yellow-600 transition duration-300">
+    <button id="scrollToTop"
+        class="scroll-to-top fixed bottom-8 right-8 bg-secondary text-dark rounded-full p-3 shadow-lg hover:bg-yellow-600 transition duration-300">
         <i class="fas fa-arrow-up"></i>
     </button>
 
     <!-- Portfolio Detail Modal -->
-    <div id="portfolioModal" class="fixed inset-0 bg-black bg-opacity-80 z-[60] hidden flex items-center justify-center p-4">
+    <div id="portfolioModal"
+        class="fixed inset-0 bg-black bg-opacity-80 z-[60] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto relative animate-fade-in">
-            <button onclick="closePortfolioModal()" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-10 bg-white rounded-full p-2 shadow-md">
+            <button onclick="closePortfolioModal()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-10 bg-white rounded-full p-2 shadow-md">
                 <i class="fas fa-times text-xl"></i>
             </button>
             <div class="flex flex-col md:flex-row">
                 <div class="md:w-1/2 bg-gray-100 flex items-center justify-center p-4">
-                    <img id="modalImage" src="" alt="Project Detail" class="max-w-full max-h-[60vh] object-contain shadow-lg rounded">
+                    <img id="modalImage" src="" alt="Project Detail"
+                        class="max-w-full max-h-[60vh] object-contain shadow-lg rounded">
                 </div>
                 <div class="md:w-1/2 p-8">
-                    <span id="modalCategory" class="inline-block bg-secondary text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Category</span>
+                    <span id="modalCategory"
+                        class="inline-block bg-secondary text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Category</span>
                     <h2 id="modalTitle" class="text-3xl font-bold text-primary mb-4">Project Title</h2>
                     <div class="w-20 h-1 bg-secondary mb-6"></div>
                     <div class="prose max-w-none text-dark mb-8">
                         <p id="modalDescription" class="whitespace-pre-wrap">Project description goes here...</p>
                     </div>
-                    <button onclick="closePortfolioModal(); showPage('contact')" class="w-full bg-primary hover:bg-secondary text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                    <button onclick="closePortfolioModal(); showPage('contact')"
+                        class="w-full bg-primary hover:bg-secondary text-white font-bold py-3 px-6 rounded-lg transition duration-300">
                         Inquire About This Service
                     </button>
                 </div>
@@ -683,40 +877,56 @@
     </div>
 
     <!-- Overview Simple Image Modal -->
-    <div id="overviewImageModal" class="fixed inset-0 bg-black bg-opacity-90 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeImageModal()">
-        <button class="absolute top-6 right-6 text-white hover:text-red-500 hover:scale-110 transition z-10 p-2" onclick="closeImageModal()">
+    <div id="overviewImageModal"
+        class="fixed inset-0 bg-black bg-opacity-90 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm"
+        onclick="closeImageModal()">
+        <button class="absolute top-6 right-6 text-white hover:text-red-500 hover:scale-110 transition z-10 p-2"
+            onclick="closeImageModal()">
             <i class="fas fa-times text-3xl"></i>
         </button>
-        <img id="overviewModalImage" src="" alt="Enlarged View" class="max-w-full max-h-[90vh] object-contain shadow-2xl rounded-lg animate-fade-in" onclick="event.stopPropagation()">
+        <img id="overviewModalImage" src="" alt="Enlarged View"
+            class="max-w-full max-h-[90vh] object-contain shadow-2xl rounded-lg animate-fade-in"
+            onclick="event.stopPropagation()">
     </div>
 
     <!-- Add Testimony Modal -->
-    <div id="addTestimonyModal" class="fixed inset-0 bg-black bg-opacity-80 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="addTestimonyModal"
+        class="fixed inset-0 bg-black bg-opacity-80 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto relative animate-fade-in p-8">
-            <button onclick="closeAddTestimonialsModal()" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-10 bg-gray-100 rounded-full p-2 w-8 h-8 flex items-center justify-center transition">
+            <button onclick="closeAddTestimonialsModal()"
+                class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-10 bg-gray-100 rounded-full p-2 w-8 h-8 flex items-center justify-center transition">
                 <i class="fas fa-times"></i>
             </button>
             <h2 class="text-2xl font-bold text-primary mb-2">Leave a Testimony</h2>
             <p class="text-sm text-gray-500 mb-6">We'd love to hear about your experience with Goddy Graphix!</p>
-            
+
             <form id="testimonyForm" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-bold text-primary mb-1">Your Name <span class="text-red-500">*</span></label>
-                    <input type="text" id="testimonyName" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary">
+                    <label class="block text-sm font-bold text-primary mb-1">Your Name <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" id="testimonyName" required
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-primary mb-1">Service Received <span class="text-gray-400 text-xs font-normal">(Optional)</span></label>
-                    <input type="text" id="testimonyService" placeholder="e.g. Brand Identity" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary">
+                    <label class="block text-sm font-bold text-primary mb-1">Service Received <span
+                            class="text-gray-400 text-xs font-normal">(Optional)</span></label>
+                    <input type="text" id="testimonyService" placeholder="e.g. Brand Identity"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-primary mb-1">Your Message <span class="text-red-500">*</span></label>
-                    <textarea id="testimonyMessage" required rows="4" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"></textarea>
+                    <label class="block text-sm font-bold text-primary mb-1">Your Message <span
+                            class="text-red-500">*</span></label>
+                    <textarea id="testimonyMessage" required rows="4"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-primary mb-1">Project File <span class="text-gray-400 text-xs font-normal">(Optional, Images or PDF)</span></label>
-                    <input type="file" id="testimonyFile" accept=".jpg,.jpeg,.png,.webp,.pdf" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary text-gray-600">
+                    <label class="block text-sm font-bold text-primary mb-1">Project File <span
+                            class="text-gray-400 text-xs font-normal">(Optional, Images or PDF)</span></label>
+                    <input type="file" id="testimonyFile" accept=".jpg,.jpeg,.png,.webp,.pdf"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary text-gray-600">
                 </div>
-                <button type="submit" id="submitTestimonyBtn" class="w-full bg-primary hover:bg-dark text-white font-bold py-3 px-6 rounded-lg transition duration-300 mt-4 flex justify-center items-center">
+                <button type="submit" id="submitTestimonyBtn"
+                    class="w-full bg-primary hover:bg-dark text-white font-bold py-3 px-6 rounded-lg transition duration-300 mt-4 flex justify-center items-center">
                     Submit Testimony
                 </button>
                 <div id="testimonyFeedback" class="text-center text-sm font-bold hidden py-2 rounded mt-2"></div>
@@ -725,21 +935,25 @@
     </div>
 
     <!-- Project File Preview Modal -->
-    <div id="projectPreviewModal" class="fixed inset-0 bg-black bg-opacity-95 z-[90] hidden flex flex-col p-4 md:p-10 backdrop-blur-md" onclick="closeProjectPreview()">
+    <div id="projectPreviewModal"
+        class="fixed inset-0 bg-black bg-opacity-95 z-[90] hidden flex flex-col p-4 md:p-10 backdrop-blur-md"
+        onclick="closeProjectPreview()">
         <div class="flex justify-end mb-4">
-            <button onclick="closeProjectPreview()" class="text-white hover:text-red-500 transition hover:scale-110 p-2">
+            <button onclick="closeProjectPreview()"
+                class="text-white hover:text-red-500 transition hover:scale-110 p-2">
                 <i class="fas fa-times text-4xl shadow-sm"></i>
             </button>
         </div>
-        <div class="flex-1 flex items-center justify-center relative w-full h-full overflow-hidden" id="projectPreviewContainer" onclick="event.stopPropagation()">
+        <div class="flex-1 flex items-center justify-center relative w-full h-full overflow-hidden"
+            id="projectPreviewContainer" onclick="event.stopPropagation()">
             <!-- Content Injected Here via JS -->
         </div>
     </div>
 
     <script>
         // API Configuration
-        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:3000' 
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
             : ''; // Production Backend (uses Vercel rewrites)
 
         function showAppAlert(message) {
@@ -763,7 +977,7 @@
             document.getElementById('modalCategory').textContent = item.category;
             document.getElementById('modalTitle').textContent = item.title;
             document.getElementById('modalDescription').textContent = item.description || "No description available.";
-            
+
             document.getElementById('portfolioModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden'; // Prevent background scrolling
         }
@@ -774,7 +988,7 @@
         }
 
         // Close modal on outside click
-        document.getElementById('portfolioModal').addEventListener('click', function(e) {
+        document.getElementById('portfolioModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 closePortfolioModal();
             }
@@ -803,27 +1017,27 @@
             sections.forEach(section => {
                 section.classList.add('hidden');
             });
-            
+
             // Show selected section
             const target = document.getElementById(pageId);
             if (target) target.classList.remove('hidden');
-            
+
             // Update active nav link
             const navLinks = document.querySelectorAll('.nav-link');
             navLinks.forEach(link => {
                 link.classList.remove('active-link');
             });
-            
+
             // Highlight current page in navigation
             const activeLink = document.querySelector(`[onclick*="showPage('${pageId}')"]`);
             if (activeLink) {
                 activeLink.classList.add('active-link');
             }
-            
+
             // Close mobile menu if open
             const mobileMenu = document.getElementById('mobile-menu');
             if (mobileMenu) mobileMenu.classList.add('hidden');
-            
+
             // Adjust layout spacing for transparent header
             const contentPadding = document.getElementById('content');
             if (contentPadding) {
@@ -846,12 +1060,12 @@
             const path = window.location.pathname.substring(1) || 'home';
             showPage(path, false);
         });
-        
+
         // Initialize with correct page based on path
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const initialPage = window.location.pathname.substring(1) || 'home';
             showPage(initialPage, false);
-            
+
             // Fetch Settings (Announcement)
             fetch(API_URL + '/api/settings')
                 .then(res => res.json())
@@ -860,10 +1074,10 @@
                     const nav = document.getElementById('main-nav');
                     const text = document.getElementById('announcement-text');
                     const content = document.getElementById('content');
-                    
+
                     if (settings && settings.showAnnouncement && settings.announcement) {
                         text.innerText = settings.announcement;
-                        
+
                         function startCycle() {
                             // 1. Reset text animation state completely
                             text.classList.remove('announcement-active');
@@ -871,7 +1085,7 @@
 
                             // 2. Slide Bar In
                             bar.classList.add('bar-visible');
-                            const barHeight = 40; 
+                            const barHeight = 40;
                             nav.style.top = (barHeight + 20) + 'px';
                             const isHome = !document.getElementById('home').classList.contains('hidden');
                             content.style.paddingTop = (isHome ? barHeight : 104 + barHeight) + 'px';
@@ -879,12 +1093,12 @@
                             // 3. Start Marquee after slide transition (1s delay)
                             setTimeout(() => {
                                 text.classList.add('announcement-active');
-                                
+
                                 // 4. After 3 cycles (12s each * 3 = 36s), Hide Bar
                                 setTimeout(() => {
                                     text.classList.remove('announcement-active');
                                     bar.classList.remove('bar-visible');
-                                    
+
                                     // 5. Return layout to normal
                                     nav.style.top = '20px';
                                     const isHomeNow = !document.getElementById('home').classList.contains('hidden');
@@ -895,7 +1109,7 @@
                                 }, 36000);
                             }, 1000);
                         }
-                        
+
                         // Initial start
                         setTimeout(startCycle, 1500);
                     } else {
@@ -911,27 +1125,27 @@
                     const isHomeInitial = !document.getElementById('home').classList.contains('hidden');
                     document.getElementById('content').style.paddingTop = isHomeInitial ? '0px' : '104px';
                 });
-            
+
             // Mobile menu toggle
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            
-            mobileMenuButton.addEventListener('click', function() {
+
+            mobileMenuButton.addEventListener('click', function () {
                 mobileMenu.classList.toggle('hidden');
             });
-            
+
             // Scroll to top button functionality
             const scrollToTopButton = document.getElementById('scrollToTop');
-            
-            window.addEventListener('scroll', function() {
+
+            window.addEventListener('scroll', function () {
                 if (window.pageYOffset > 300) {
                     scrollToTopButton.classList.add('visible');
                 } else {
                     scrollToTopButton.classList.remove('visible');
                 }
             });
-            
-            scrollToTopButton.addEventListener('click', function() {
+
+            scrollToTopButton.addEventListener('click', function () {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
@@ -940,7 +1154,7 @@
                 .then(response => response.json())
                 .then(services => {
                     const grid = document.getElementById('services-grid');
-                    
+
                     // Filter out hidden services (so admins don't see them on public view)
                     const visibleServices = services.filter(s => s.visible !== false);
 
@@ -950,8 +1164,8 @@
                     }
 
                     grid.innerHTML = visibleServices.map(service => {
-                        const priceDisplay = service.price_type === 'fixed' 
-                            ? `GH₵${service.price_min}` 
+                        const priceDisplay = service.price_type === 'fixed'
+                            ? `GH₵${service.price_min}`
                             : `GH₵${service.price_min} - GH₵${service.price_max}`;
 
                         return `
@@ -1010,7 +1224,7 @@
                 .then(items => {
                     // Filter out hidden items (extra safety for admins viewing public site)
                     const visibleItems = items.filter(item => item.visible !== false);
-                    
+
                     if (visibleItems.length > 0) {
                         const grid = document.getElementById('portfolio-grid');
                         grid.innerHTML = '';
@@ -1042,9 +1256,9 @@
             // Contact Form Handling
             const contactForm = document.getElementById('contactForm');
             if (contactForm) {
-                contactForm.addEventListener('submit', function(e) {
+                contactForm.addEventListener('submit', function (e) {
                     e.preventDefault();
-                    
+
                     const formData = {
                         name: document.getElementById('name').value,
                         email: document.getElementById('email').value,
@@ -1061,35 +1275,35 @@
                         },
                         body: JSON.stringify(formData)
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showAppAlert('Thank you! Your request has been sent successfully.');
-                            contactForm.reset();
-                        } else {
-                            showAppAlert('Sorry, there was an error sending your message. Please try again.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showAppAlert('An error occurred. Please try again later.');
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showAppAlert('Thank you! Your request has been sent successfully.');
+                                contactForm.reset();
+                            } else {
+                                showAppAlert('Sorry, there was an error sending your message. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showAppAlert('An error occurred. Please try again later.');
+                        });
                 });
             }
 
             // Hero Slideshow
             const slides = document.querySelectorAll('.hero-slide');
             let currentSlide = 0;
-            
+
             if (slides.length > 0) {
                 setInterval(() => {
                     // Hide current
                     slides[currentSlide].classList.remove('opacity-100');
                     slides[currentSlide].classList.add('opacity-0');
-                    
+
                     // Move to next
                     currentSlide = (currentSlide + 1) % slides.length;
-                    
+
                     // Show next
                     slides[currentSlide].classList.remove('opacity-0');
                     slides[currentSlide].classList.add('opacity-100');
@@ -1100,7 +1314,7 @@
             let allTestimonials = [];
             let testimonialsVisible = false;
 
-            window.fetchTestimonials = async function() {
+            window.fetchTestimonials = async function () {
                 try {
                     const response = await fetch(API_URL + '/api/testimonials');
                     allTestimonials = await response.json();
@@ -1125,7 +1339,7 @@
                     const isHidden = !testimonialsVisible && index >= 9;
                     const card = document.createElement('div');
                     card.className = `bg-white rounded-xl shadow-md p-6 testimonial-card transition duration-300 hover:shadow-xl ${isHidden ? 'hidden' : ''}`;
-                    
+
                     card.innerHTML = `
                         <div class="flex items-start justify-between mb-4 gap-4">
                             <div class="flex-1">
@@ -1182,15 +1396,15 @@
                 }
             }
 
-            window.toggleHiddenTestimonials = function() {
+            window.toggleHiddenTestimonials = function () {
                 testimonialsVisible = !testimonialsVisible;
                 renderTestimonials();
-                if(!testimonialsVisible){
+                if (!testimonialsVisible) {
                     document.getElementById('testimonials').scrollIntoView({ behavior: 'smooth' });
                 }
             }
 
-            window.toggleReadMore = function(btn, id) {
+            window.toggleReadMore = function (btn, id) {
                 const p = document.getElementById(id);
                 if (p.classList.contains('line-clamp-5')) {
                     p.classList.remove('line-clamp-5');
@@ -1202,13 +1416,13 @@
             }
 
             // --- Add Testimony Logic ---
-            window.openAddTestimonialsModal = function() {
+            window.openAddTestimonialsModal = function () {
                 document.getElementById('addTestimonyModal').classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
                 document.getElementById('testimonyFeedback').classList.add('hidden');
             }
 
-            window.closeAddTestimonialsModal = function() {
+            window.closeAddTestimonialsModal = function () {
                 document.getElementById('addTestimonyModal').classList.add('hidden');
                 document.body.style.overflow = 'auto';
                 document.getElementById('testimonyForm').reset();
@@ -1225,7 +1439,7 @@
                 formData.append('name', document.getElementById('testimonyName').value);
                 formData.append('service', document.getElementById('testimonyService').value);
                 formData.append('message', document.getElementById('testimonyMessage').value);
-                
+
                 const fileInput = document.getElementById('testimonyFile');
                 if (fileInput.files[0]) {
                     formData.append('project_file', fileInput.files[0]);
@@ -1237,7 +1451,7 @@
                         body: formData
                     });
                     const data = await response.json();
-                    
+
                     feedback.classList.remove('hidden', 'bg-red-50', 'text-red-500');
                     if (data.success) {
                         feedback.classList.add('bg-green-50', 'text-green-600');
@@ -1263,10 +1477,10 @@
             });
 
             // --- Project Preview Modal Logic ---
-            window.openProjectPreview = function(url, isPdf) {
+            window.openProjectPreview = function (url, isPdf) {
                 const container = document.getElementById('projectPreviewContainer');
                 container.innerHTML = '';
-                
+
                 container.textContent = '';
                 if (isPdf) {
                     const iframe = document.createElement('iframe');
@@ -1281,12 +1495,12 @@
                     img.onclick = (e) => e.stopPropagation();
                     container.appendChild(img);
                 }
-                
+
                 document.getElementById('projectPreviewModal').classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             }
 
-            window.closeProjectPreview = function() {
+            window.closeProjectPreview = function () {
                 document.getElementById('projectPreviewModal').classList.add('hidden');
                 document.body.style.overflow = 'auto';
                 document.getElementById('projectPreviewContainer').innerHTML = '';
@@ -1337,7 +1551,7 @@
 
                     const currentObj = textLines[currentLine];
                     const targetStr = currentObj.text;
-                    
+
                     if (charIndex < targetStr.length) {
                         currentObj.elm.textContent += targetStr.charAt(charIndex);
                         charIndex++;
@@ -1354,10 +1568,10 @@
                 }
                 setTimeout(typeNext, 600);
             }
-            
+
             runTypewriter();
         });
     </script>
-    <!-- start webpushr code --> <script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.async=1;js.src = "https://cdn.webpushr.com/app.min.js";fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('setup',{'key':'BO7BHhdFJUJtbgpOYg70TUlZdLz1XRrWpfAsIUCeGmMvhevxu0y-LnUfRCVsdc1p53ELgH5sRfLOIg678AyPgqQ' ,'integration':'popup' });</script><!-- end webpushr code -->
 </body>
+
 </html>
