@@ -336,13 +336,78 @@
 
             <!-- Tab: Portfolio -->
             <div id="view-portfolio" class="tab-content hidden fade-in">
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-                        <h3 class="font-bold uppercase tracking-wider text-sm">Project Catalog</h3>
-                        <span class="text-xs font-bold text-gray-400" id="portfolio-count-tag">0 Items Total</span>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Project Catalog -->
+                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                            <h3 class="font-bold uppercase tracking-wider text-sm">Project Catalog</h3>
+                            <span class="text-xs font-bold text-gray-400" id="portfolio-count-tag">0 Items Total</span>
+                        </div>
+                        <div id="itemsList" class="divide-y divide-gray-50 max-h-[700px] overflow-y-auto custom-scrollbar">
+                            <!-- Items injected here -->
+                        </div>
                     </div>
-                    <div id="itemsList" class="divide-y divide-gray-50">
-                        <!-- Items injected here -->
+
+                    <!-- Add to Portfolio Form -->
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 max-h-[800px] overflow-y-auto custom-scrollbar">
+                        <h4 class="font-montserrat font-bold uppercase mb-6 flex items-center">
+                            <i class="fas fa-plus-circle mr-2 text-secondary" id="portfolioFormIcon"></i>
+                            <span id="portfolioFormTitle">Add to Portfolio</span>
+                        </h4>
+                        <form id="portfolioUploadForm" class="space-y-4">
+                            <input type="hidden" id="portfolioEditId" value="">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Project Title</label>
+                                <input type="text" id="pTitle" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="e.g. Brand Refresh for XYZ" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Category</label>
+                                <select id="pCategory" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition">
+                                    <option>Brand Identity</option>
+                                    <option>Digital Design</option>
+                                    <option>Print Materials</option>
+                                    <option>Motion Graphics</option>
+                                    <option>E-commerce</option>
+                                    <option>Illustration</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Project Image</label>
+                                <div class="relative">
+                                    <input type="file" id="pImage" accept="image/*" class="hidden" required>
+                                    <label for="pImage" class="flex items-center justify-center w-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 cursor-pointer hover:bg-gray-100 transition group">
+                                        <div class="text-center" id="pUploadPlaceholder">
+                                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 group-hover:text-secondary transition mb-2"></i>
+                                            <p class="text-sm text-gray-500 font-medium">Click to select project preview</p>
+                                        </div>
+                                        <div class="hidden text-center" id="pUploadPreview">
+                                            <p class="text-xs font-bold text-secondary uppercase mb-2">Image Selected</p>
+                                            <p class="text-sm text-gray-800 font-medium" id="pFileNameDisplay"></p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Description <span class="normal-case text-gray-400 font-normal">(Optional)</span></label>
+                                <textarea id="pDescription" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="Brief description of the project..."></textarea>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-semibold text-gray-700">Visible on website</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="pVisible" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-secondary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                                </label>
+                            </div>
+                            <div id="portfolioFeedback" class="hidden text-xs font-bold p-3 rounded-lg text-center"></div>
+                            <div class="flex gap-3">
+                                <button type="submit" id="pSubmitBtn" class="flex-1 bg-secondary text-primary font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition">
+                                    <i class="fas fa-plus mr-2"></i> Publish to Portfolio
+                                </button>
+                                <button type="button" id="pCancelBtn" class="hidden px-4 bg-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-300 transition" onclick="resetPortfolioForm()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -1177,6 +1242,78 @@
             btn.disabled = false;
             btn.innerHTML = 'Publish to Portfolio';
         });
+
+        // Portfolio Tab: File Selection Feedback
+        document.getElementById('pImage').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('pUploadPlaceholder').classList.add('hidden');
+                document.getElementById('pUploadPreview').classList.remove('hidden');
+                document.getElementById('pFileNameDisplay').innerText = file.name;
+            } else {
+                document.getElementById('pUploadPlaceholder').classList.remove('hidden');
+                document.getElementById('pUploadPreview').classList.add('hidden');
+            }
+        });
+
+        // Portfolio Tab: Reset Form
+        function resetPortfolioForm() {
+            document.getElementById('portfolioUploadForm').reset();
+            document.getElementById('portfolioEditId').value = '';
+            document.getElementById('portfolioFormTitle').innerText = 'Add to Portfolio';
+            document.getElementById('portfolioFormIcon').className = 'fas fa-plus-circle mr-2 text-secondary';
+            document.getElementById('pSubmitBtn').innerHTML = '<i class="fas fa-plus mr-2"></i> Publish to Portfolio';
+            document.getElementById('pCancelBtn').classList.add('hidden');
+            document.getElementById('pImage').required = true;
+            document.getElementById('pUploadPlaceholder').classList.remove('hidden');
+            document.getElementById('pUploadPreview').classList.add('hidden');
+        }
+
+        // Portfolio Tab: Form Submit Handler
+        document.getElementById('portfolioUploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('pSubmitBtn');
+            const fileInput = document.getElementById('pImage');
+            const editId = document.getElementById('portfolioEditId').value;
+
+            if (!editId && fileInput.files.length === 0) {
+                showFeedback('portfolioFeedback', 'Please select an image.', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('pTitle').value);
+            formData.append('category', document.getElementById('pCategory').value);
+            formData.append('description', document.getElementById('pDescription').value);
+            formData.append('visible', document.getElementById('pVisible').checked);
+            if (fileInput.files[0]) {
+                formData.append('image', fileInput.files[0]);
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Publishing...';
+
+            try {
+                const url = editId ? `${API_URL}/api/portfolio/${editId}` : `${API_URL}/api/portfolio`;
+                const method = editId ? 'PUT' : 'POST';
+                const res = await fetch(url, { method, credentials: 'include', body: formData });
+                const data = await readApiResponse(res);
+                if (res.ok) {
+                    showFeedback('portfolioFeedback', editId ? 'Project updated successfully!' : 'Project published to portfolio!');
+                    resetPortfolioForm();
+                    loadPortfolioItems();
+                    updateStats();
+                } else {
+                    showFeedback('portfolioFeedback', 'Error: ' + (data.error || 'Unknown error'), true);
+                }
+            } catch (err) {
+                console.error('[PORTFOLIO UPLOAD]:', err);
+                showFeedback('portfolioFeedback', 'Connection error: ' + (err.message || 'Please check your server.'), true);
+            }
+            btn.disabled = false;
+            btn.innerHTML = editId ? '<i class="fas fa-save mr-2"></i> Update Project' : '<i class="fas fa-plus mr-2"></i> Publish to Portfolio';
+        });
+
 
         // Generic Delete
         async function deleteItem(id) {
