@@ -1012,6 +1012,27 @@
             document.body.style.overflow = 'auto';
         }
 
+        // WhatsApp Configuration
+        const WHATSAPP_NUMBER = '233596304385';
+
+        // WhatsApp Helper: opens WhatsApp with a pre-filled message
+        function openWhatsApp(message) {
+            const encoded = encodeURIComponent(message);
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
+        }
+
+        // WhatsApp: Service Request (from service card front)
+        function openWhatsAppServiceRequest(serviceName) {
+            const message = `Hello Goddy Graphix,\n\nI would like to request the following service:\n\n*Service:* ${serviceName}\n\nPlease let me know how we can proceed. Thank you!`;
+            openWhatsApp(message);
+        }
+
+        // WhatsApp: Inquiry (from service card back)
+        function openWhatsAppInquiry(serviceName) {
+            const message = `Please I would like to inquire about ${serviceName}`;
+            openWhatsApp(message);
+        }
+
         // Page switching functionality
         function showPage(pageId, pushState = true) {
             // Validate pageId to prevent errors
@@ -1259,26 +1280,6 @@
                 })
                 .catch(err => console.error('Error loading portfolio:', err));
 
-            // WhatsApp Configuration
-            const WHATSAPP_NUMBER = '233596304385';
-
-            // WhatsApp Helper: opens WhatsApp with a pre-filled message
-            function openWhatsApp(message) {
-                const encoded = encodeURIComponent(message);
-                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
-            }
-
-            // WhatsApp: Service Request (from service card front)
-            function openWhatsAppServiceRequest(serviceName) {
-                const message = `Hello Goddy Graphix,\n\nI would like to request the following service:\n\n*Service:* ${serviceName}\n\nPlease let me know how we can proceed. Thank you!`;
-                openWhatsApp(message);
-            }
-
-            // WhatsApp: Inquiry (from service card back)
-            function openWhatsAppInquiry(serviceName) {
-                const message = `Please I would like to inquire about ${serviceName}`;
-                openWhatsApp(message);
-            }
 
             // Contact Form Handling
             const contactForm = document.getElementById('contactForm');
