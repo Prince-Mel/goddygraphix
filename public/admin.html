@@ -294,12 +294,7 @@
                         <form id="quickUploadForm" class="space-y-4">
                             <input type="text" id="qTitle" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition" placeholder="Project Title" required>
                             <select id="qCategory" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition">
-                                <option>Brand Identity</option>
-                                <option>Digital Design</option>
-                                <option>Print Materials</option>
-                                <option>Motion Graphics</option>
-                                <option>E-commerce</option>
-                                <option>Illustration</option>
+                                <option value="General">Loading categories...</option>
                             </select>
                             <div class="relative">
                                 <input type="file" id="qImage" accept="image/*" class="hidden" required>
@@ -363,12 +358,7 @@
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-500 mb-2">Category</label>
                                 <select id="pCategory" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-secondary transition">
-                                    <option>Brand Identity</option>
-                                    <option>Digital Design</option>
-                                    <option>Print Materials</option>
-                                    <option>Motion Graphics</option>
-                                    <option>E-commerce</option>
-                                    <option>Illustration</option>
+                                    <option value="General">Loading categories...</option>
                                 </select>
                             </div>
                             <div>
@@ -932,6 +922,36 @@
             updateStats();
         }
 
+        // Populate portfolio category dropdowns from services
+        function populatePortfolioCategories(services) {
+            const dropdowns = [document.getElementById('qCategory'), document.getElementById('pCategory')];
+            const visibleServices = services.filter(s => s.visible);
+
+            dropdowns.forEach(select => {
+                if (!select) return;
+                const currentValue = select.value;
+                select.innerHTML = '';
+                if (visibleServices.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.value = 'General';
+                    opt.textContent = 'General';
+                    select.appendChild(opt);
+                } else {
+                    visibleServices.forEach(service => {
+                        const opt = document.createElement('option');
+                        opt.value = service.name;
+                        opt.textContent = service.name;
+                        select.appendChild(opt);
+                    });
+                }
+                // Restore previous selection if it still exists
+                if (currentValue) {
+                    const exists = Array.from(select.options).some(o => o.value === currentValue);
+                    if (exists) select.value = currentValue;
+                }
+            });
+        }
+
         async function updateStats() {
             try {
                 const [pRes, rRes, sRes, tRes] = await Promise.all([
@@ -956,6 +976,10 @@
                 document.getElementById('stat-portfolio').innerText = p.filter(i => i.visible !== false).length;
                 document.getElementById('stat-requests').innerText = r.length;
                 document.getElementById('stat-services').innerText = s.filter(i => i.visible).length;
+
+                // Populate portfolio category dropdowns from available services
+                populatePortfolioCategories(s);
+
                 document.getElementById('stat-testimonials').innerText = t.length;
                 if (document.getElementById('portfolio-count-tag')) {
                     document.getElementById('portfolio-count-tag').innerText = `${p.length} Items Total`;
