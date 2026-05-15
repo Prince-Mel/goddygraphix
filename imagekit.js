@@ -15,7 +15,9 @@ const hasImageKitConfig = () => !!(
 );
 
 const createImageKitClient = () => new ImageKit({
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 });
 
 // Configure Multer for memory storage (required for cloud uploads)
@@ -72,18 +74,18 @@ const uploadToImageKit = async (file, req = null) => {
         const imagekit = createImageKitClient();
         const fileName = `goddygraphix-${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         console.log(`[IMAGEKIT] Uploading file: ${file.originalname} (${file.size} bytes)`);
-        const response = await imagekit.files.upload({
-            file: await toFile(file.buffer, fileName),
-            fileName,
+        
+        // v7 SDK: file can be a buffer directly
+        const response = await imagekit.upload({
+            file: file.buffer,
+            fileName: fileName,
             folder: "/goddygraphix_uploads"
         });
+        
         console.log("[IMAGEKIT] Upload successful:", response.url);
         return response.url;
     } catch (error) {
         console.error("[IMAGEKIT] Upload Error:", error.message || error);
-        if (error.message && error.message.includes('Authentication failed')) {
-            throw new Error("ImageKit authentication failed. Please check your keys.");
-        }
         throw new Error(`ImageKit Upload Failed: ${error.message || 'Unknown error'}`);
     }
 };

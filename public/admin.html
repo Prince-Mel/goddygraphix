@@ -1344,9 +1344,10 @@
             } catch (err) {
                 console.error('[PORTFOLIO UPLOAD]:', err);
                 showFeedback('portfolioFeedback', 'Connection error: ' + (err.message || 'Please check your server.'), true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = editId ? '<i class="fas fa-save mr-2"></i> Update Project' : '<i class="fas fa-plus mr-2"></i> Publish to Portfolio';
             }
-            btn.disabled = false;
-            btn.innerHTML = editId ? '<i class="fas fa-save mr-2"></i> Update Project' : '<i class="fas fa-plus mr-2"></i> Publish to Portfolio';
         });
 
 

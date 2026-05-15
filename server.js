@@ -654,12 +654,12 @@ app.post('/api/portfolio', requireAdmin, upload.single('image'), async (req, res
         const imageUrl = req.file ? await uploadToImageKit(req.file, req) : '';
 
         if (!title || !category || !imageUrl) {
-            return res.status(400).json({ error: 'Missing required fields' });
+            return res.status(400).json({ error: 'Missing required fields (Title, Category, and Image are mandatory)' });
         }
 
         const [result] = await pool.query(
             "INSERT INTO portfolio (title, category, description, image_url, visible) VALUES (?, ?, ?, ?, ?)",
-            [title, category, description || "", imageUrl, true]
+            [title, category, description || "", imageUrl, String(req.body.visible) === 'true']
         );
 
         res.json({
@@ -668,17 +668,16 @@ app.post('/api/portfolio', requireAdmin, upload.single('image'), async (req, res
             category,
             description,
             image_url: imageUrl,
-            visible: true
+            visible: String(req.body.visible) === 'true'
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
+        console.error("[PORTFOLIO] Error publishing:", err);
+        res.status(500).json({ error: "Failed to publish project: " + err.message });
     }
 });
 
 // Toggle Portfolio Visibility
 app.patch('/api/portfolio/:id/visibility', requireAdmin, async (req, res) => {
-    try {
         const id = parseInt(req.params.id);
         const { visible } = req.body;
         await pool.query("UPDATE portfolio SET visible = ? WHERE id = ?", [visible, id]);
