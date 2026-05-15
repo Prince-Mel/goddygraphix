@@ -1023,12 +1023,12 @@ app.use((err, req, res, next) => {
 // --- Clean URL Routing ---
 
 // Admin Catch-all: Any path starting with /admin serves admin.html
-app.get('/admin*', (req, res) => {
+app.get(['/admin', '/admin/*path'], (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 // Main Site Catch-all: Any other non-API path serves index.html
-app.get('*', (req, res) => {
+app.get('/*path', (req, res) => {
     // Exclude /api and /uploads which are handled by middleware above
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
         return res.status(404).json({ error: 'Not Found' });
