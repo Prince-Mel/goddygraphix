@@ -873,7 +873,7 @@ app.post('/api/testimonials', upload.single('project_file'), contactLimiter, asy
     }
 });
 
-app.put('/api/testimonials/:id', requireAdmin, upload.single('project_file'), async (req, res) => {
+app.put('/api/testimonials/:id', requireAdmin, upload.single('project_file'), async (req, res, next) => {
     try {
         const id = parseInt(req.params.id);
         const { name, message, service, approved, visible } = req.body;
@@ -897,8 +897,8 @@ app.put('/api/testimonials/:id', requireAdmin, upload.single('project_file'), as
         await pool.query(query, params);
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
+        console.error("[TESTIMONIAL EDIT ERROR]:", err);
+        next(err);
     }
 });
 
@@ -1006,7 +1006,7 @@ app.use((err, req, res, next) => {
     
     // Multer Error Handling
     if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(413).json({ error: 'File too large. Maximum size allowed is 10MB.' });
+        return res.status(413).json({ error: 'File too large. Maximum size allowed is 25MB.' });
     }
     
     if (err.message && err.message.includes('Only image and pdf files are allowed')) {
