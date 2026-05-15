@@ -267,6 +267,23 @@
                 transform: translateY(-0.5rem) scale(0.98);
             }
         }
+
+        /* Hero Slideshow Responsive Backgrounds */
+        .hero-slide-1 { background-image: url('assets/images/hero/hero-mobile-1.jpg'); }
+        .hero-slide-2 { background-image: url('assets/images/hero/hero-mobile-2.jpg'); }
+        .hero-slide-3 { background-image: url('assets/images/hero/hero-mobile-3.jpg'); }
+        .hero-slide-4 { background-image: url('assets/images/hero/hero-mobile-4.jpg'); }
+        .hero-slide-5 { background-image: url('assets/images/hero/hero-mobile-5.jpg'); }
+        .hero-slide-6 { background-image: url('assets/images/hero/hero-mobile-6.jpg'); }
+
+        @media (min-width: 768px) {
+            .hero-slide-1 { background-image: url('assets/images/hero/hero-desktop-1.jpg'); }
+            .hero-slide-2 { background-image: url('assets/images/hero/hero-desktop-2.jpg'); }
+            .hero-slide-3 { background-image: url('assets/images/hero/hero-desktop-3.jpg'); }
+            .hero-slide-4 { background-image: url('assets/images/hero/hero-desktop-4.jpg'); }
+            .hero-slide-5 { background-image: url('assets/images/hero/hero-desktop-5.jpg'); }
+            .hero-slide-6 { background-image: url('assets/images/hero/hero-desktop-1.jpg'); } /* Loop back or repeat 1st for desktop */
+        }
     </style>
 </head>
 
@@ -336,17 +353,17 @@
             <div class="min-h-screen flex items-center justify-center relative w-full">
                 <!-- Slideshow Background -->
                 <div id="hero-slideshow" class="absolute inset-0 w-full h-full z-0">
-                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-100"
-                        style="background-image: url('https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1920&auto=format&fit=crop')">
+                    <div class="hero-slide hero-slide-1 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-100">
                     </div>
-                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0"
-                        style="background-image: url('https://images.unsplash.com/photo-1626785774573-4b799314346d?q=80&w=1920&auto=format&fit=crop')">
+                    <div class="hero-slide hero-slide-2 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
                     </div>
-                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0"
-                        style="background-image: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop')">
+                    <div class="hero-slide hero-slide-3 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
                     </div>
-                    <div class="hero-slide absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0"
-                        style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop')">
+                    <div class="hero-slide hero-slide-4 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
+                    </div>
+                    <div class="hero-slide hero-slide-5 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
+                    </div>
+                    <div class="hero-slide hero-slide-6 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
                     </div>
                 </div>
 
