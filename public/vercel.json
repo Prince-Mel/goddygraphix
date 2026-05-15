@@ -3,6 +3,9 @@
   "public": true,
   "name": "goddy-graphix-frontend",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://goddygraphix.onrender.com/api/$1" }
+    { "source": "/api/(.*)", "destination": "https://goddygraphix.onrender.com/api/$1" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/admin/(.*)", "destination": "/admin.html" },
+    { "source": "/((?!api|assets|favicon.jpeg).*)", "destination": "/index.html" }
   ]
 }
