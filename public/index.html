@@ -1194,7 +1194,7 @@
                                         <button type="button" onclick="document.getElementById('flip-inner-${service.id}').classList.add('is-flipped')" class="font-semibold text-primary hover:text-secondary transition text-left flex items-center w-full justify-between">
                                             Learn More <i class="fas fa-arrow-right text-xs"></i>
                                         </button>` : ''}
-                                        <button onclick="showPage('contact'); document.getElementById('service').value = '${service.name}';" class="flex items-center justify-center w-full bg-transparent border border-secondary text-secondary hover:bg-secondary hover:text-primary rounded-full py-2.5 transition duration-300 font-bold text-sm">
+                                        <button onclick="openWhatsAppServiceRequest('${service.name}')" class="flex items-center justify-center w-full bg-transparent border border-secondary text-secondary hover:bg-secondary hover:text-primary rounded-full py-2.5 transition duration-300 font-bold text-sm">
                                             <i class="fas fa-star text-[#0a0a0a] mr-2"></i>
                                             Request This Service
                                             <i class="fas fa-star text-[#0a0a0a] ml-2"></i>
@@ -1211,7 +1211,7 @@
                                     <div class="text-sm text-secondary opacity-90 leading-relaxed overflow-y-auto pr-3 custom-scrollbar flex-grow">
                                         ${service.long_description}
                                     </div>
-                                    <button onclick="showPage('contact'); document.getElementById('flip-inner-${service.id}').classList.remove('is-flipped'); document.getElementById('service').value = '${service.name}';" class="mt-6 w-full bg-primary hover:bg-secondary hover:text-dark text-white font-bold py-3 px-4 rounded-lg transition duration-300 text-sm">
+                                    <button onclick="openWhatsAppInquiry('${service.name}')" class="mt-6 w-full bg-primary hover:bg-secondary hover:text-dark text-white font-bold py-3 px-4 rounded-lg transition duration-300 text-sm">
                                         Inquire Now
                                     </button>
                                 </div>
@@ -1259,6 +1259,27 @@
                 })
                 .catch(err => console.error('Error loading portfolio:', err));
 
+            // WhatsApp Configuration
+            const WHATSAPP_NUMBER = '233596304385';
+
+            // WhatsApp Helper: opens WhatsApp with a pre-filled message
+            function openWhatsApp(message) {
+                const encoded = encodeURIComponent(message);
+                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
+            }
+
+            // WhatsApp: Service Request (from service card front)
+            function openWhatsAppServiceRequest(serviceName) {
+                const message = `Hello Goddy Graphix,\n\nI would like to request the following service:\n\n*Service:* ${serviceName}\n\nPlease let me know how we can proceed. Thank you!`;
+                openWhatsApp(message);
+            }
+
+            // WhatsApp: Inquiry (from service card back)
+            function openWhatsAppInquiry(serviceName) {
+                const message = `Please I would like to inquire about ${serviceName}`;
+                openWhatsApp(message);
+            }
+
             // Contact Form Handling
             const contactForm = document.getElementById('contactForm');
             if (contactForm) {
@@ -1274,26 +1295,22 @@
                         message: document.getElementById('message').value
                     };
 
+                    // Build the WhatsApp message from all contact form fields
+                    const whatsappMessage = `Hello Goddy Graphix,\n\n*Name:* ${formData.name}\n*Email:* ${formData.email}\n*Phone:* ${formData.phone || 'N/A'}\n*Service:* ${formData.service}\n*Subject:* ${formData.subject || 'N/A'}\n\n*Message:*\n${formData.message}`;
+
+                    // Also save to backend for record-keeping
                     fetch(API_URL + '/api/requests', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(formData)
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                showAppAlert('Thank you! Your request has been sent successfully.');
-                                contactForm.reset();
-                            } else {
-                                showAppAlert('Sorry, there was an error sending your message. Please try again.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            showAppAlert('An error occurred. Please try again later.');
-                        });
+                    }).catch(error => console.error('Backend save error:', error));
+
+                    // Redirect to WhatsApp
+                    showAppAlert('Redirecting you to WhatsApp...');
+                    contactForm.reset();
+                    setTimeout(() => openWhatsApp(whatsappMessage), 500);
                 });
             }
 
