@@ -76,7 +76,7 @@ const uploadToImageKit = async (file, req = null) => {
         console.log(`[IMAGEKIT] Uploading file: ${file.originalname} (${file.size} bytes)`);
         
         // v7 SDK: file can be a buffer directly
-        const response = await imagekit.upload({
+        const response = await imagekit.files.upload({
             file: file.buffer,
             fileName: fileName,
             folder: "/goddygraphix_uploads"
