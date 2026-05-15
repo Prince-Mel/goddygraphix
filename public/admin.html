@@ -920,6 +920,17 @@
             }
 
             updateStats();
+
+            // Auto-refresh: poll for new data every 30 seconds
+            setInterval(() => {
+                updateStats();
+                // Refresh the currently active tab's data
+                if (currentTab === 'portfolio') loadPortfolioItems();
+                if (currentTab === 'services') loadServices();
+                if (currentTab === 'requests') loadRequests();
+                if (currentTab === 'testimonials') loadAdminTestimonials();
+                if (currentTab === 'settings') loadSettings();
+            }, 30000);
         }
 
         // Populate portfolio category dropdowns from services

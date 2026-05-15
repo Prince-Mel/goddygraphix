@@ -1177,7 +1177,8 @@
             });
 
             // Dynamic Services Loading
-            fetch(API_URL + '/api/services')
+            function loadPublicServices() {
+                fetch(API_URL + '/api/services')
                 .then(response => response.json())
                 .then(services => {
                     const grid = document.getElementById('services-grid');
@@ -1244,9 +1245,12 @@
                     console.error('Error loading services:', err);
                     document.getElementById('services-grid').innerHTML = '<div class="col-span-full text-center py-12 text-gray-500"><p>Unable to load services. Please try again later.</p></div>';
                 });
+            }
+            loadPublicServices();
 
             // Dynamic Portfolio Loading
-            fetch(API_URL + '/api/portfolio')
+            function loadPublicPortfolio() {
+                fetch(API_URL + '/api/portfolio')
                 .then(response => response.json())
                 .then(items => {
                     // Filter out hidden items (extra safety for admins viewing public site)
@@ -1279,6 +1283,8 @@
                     }
                 })
                 .catch(err => console.error('Error loading portfolio:', err));
+            }
+            loadPublicPortfolio();
 
 
             // Contact Form Handling
@@ -1532,6 +1538,13 @@
 
             // Initialization Calls
             fetchTestimonials();
+
+            // Auto-refresh: poll for new data every 60 seconds
+            setInterval(() => {
+                loadPublicServices();
+                loadPublicPortfolio();
+                fetchTestimonials();
+            }, 60000);
 
             // --- Home Page Sequenced Animation Logic ---
             function runTypewriter() {
