@@ -678,6 +678,7 @@ app.post('/api/portfolio', requireAdmin, upload.single('image'), async (req, res
 
 // Toggle Portfolio Visibility
 app.patch('/api/portfolio/:id/visibility', requireAdmin, async (req, res) => {
+    try {
         const id = parseInt(req.params.id);
         const { visible } = req.body;
         await pool.query("UPDATE portfolio SET visible = ? WHERE id = ?", [visible, id]);

@@ -1833,10 +1833,13 @@
                 } else {
                     showAppAlert('Failed to save: ' + (data.error || 'Unknown error'));
                 }
-            } catch (err) { console.error(err); showAppAlert('Connection error'); }
-
-            btn.innerHTML = 'Save Changes';
-            btn.disabled = false;
+            } catch (err) { 
+                console.error(err); 
+                showAppAlert('Connection error'); 
+            } finally {
+                btn.innerHTML = 'Save Changes';
+                btn.disabled = false;
+            }
         });
 
         function adminPreviewProject(url, isPdf) {
