@@ -1359,10 +1359,16 @@
                 const noMsg = document.getElementById('noTestimonialsMsg');
                 const seeMoreBtn = document.getElementById('seeMoreTestimonialsBtn');
 
+                // Clear existing testimonial cards to prevent duplication on auto-pull
+                const existingCards = grid.querySelectorAll('.testimonial-card');
+                existingCards.forEach(card => card.remove());
+
                 if (allTestimonials.length === 0) {
                     noMsg.classList.remove('hidden');
                     seeMoreBtn.classList.add('hidden');
                     return;
+                } else {
+                    noMsg.classList.add('hidden');
                 }
 
                 allTestimonials.forEach((t, index) => {
