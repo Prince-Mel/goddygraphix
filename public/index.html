@@ -268,22 +268,7 @@
             }
         }
 
-        /* Hero Slideshow Responsive Backgrounds */
-        .hero-slide-1 { background-image: url('assets/images/hero/hero-mobile-1.jpg'); }
-        .hero-slide-2 { background-image: url('assets/images/hero/hero-mobile-2.jpg'); }
-        .hero-slide-3 { background-image: url('assets/images/hero/hero-mobile-3.jpg'); }
-        .hero-slide-4 { background-image: url('assets/images/hero/hero-mobile-4.jpg'); }
-        .hero-slide-5 { background-image: url('assets/images/hero/hero-mobile-5.jpg'); }
-        .hero-slide-6 { background-image: url('assets/images/hero/hero-mobile-6.jpg'); }
 
-        @media (min-width: 768px) {
-            .hero-slide-1 { background-image: url('assets/images/hero/hero-desktop-1.jpg'); }
-            .hero-slide-2 { background-image: url('assets/images/hero/hero-desktop-2.jpg'); }
-            .hero-slide-3 { background-image: url('assets/images/hero/hero-desktop-3.jpg'); }
-            .hero-slide-4 { background-image: url('assets/images/hero/hero-desktop-4.jpg'); }
-            .hero-slide-5 { background-image: url('assets/images/hero/hero-desktop-5.jpg'); }
-            .hero-slide-6 { background-image: url('assets/images/hero/hero-desktop-1.jpg'); } /* Loop back or repeat 1st for desktop */
-        }
     </style>
 </head>
 
@@ -351,25 +336,11 @@
         <section id="home" class="min-h-screen relative overflow-hidden bg-primary">
             <!-- Hero Content -->
             <div class="min-h-screen flex items-center justify-center relative w-full">
-                <!-- Slideshow Background -->
-                <div id="hero-slideshow" class="absolute inset-0 w-full h-full z-0">
-                    <div class="hero-slide hero-slide-1 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-100">
-                    </div>
-                    <div class="hero-slide hero-slide-2 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
-                    </div>
-                    <div class="hero-slide hero-slide-3 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
-                    </div>
-                    <div class="hero-slide hero-slide-4 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
-                    </div>
-                    <div class="hero-slide hero-slide-5 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
-                    </div>
-                    <div class="hero-slide hero-slide-6 absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 opacity-0">
-                    </div>
-                </div>
+
 
                 <!-- Gradient Overlay -->
                 <div class="absolute inset-0 z-0 pointer-events-none"
-                    style="background: linear-gradient(rgba(10, 37, 64, 0.8), rgba(10, 37, 64, 0.9));"></div>
+                    style="background: linear-gradient(rgba(1, 167, 227, 0.75), rgba(1, 167, 227, 0.9));"></div>
 
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full">
                     <div class="animate-fade-in flex flex-col justify-center items-center min-h-[300px]">
@@ -394,7 +365,7 @@
                         <div id="hero-buttons"
                             class="flex flex-col sm:flex-row justify-center gap-4 opacity-0 scale-75 transition-all duration-700 pointer-events-none mt-2">
                             <button onclick="showPage('portfolio')"
-                                class="bg-transparent border-2 border-secondary text-dark hover:bg-secondary hover:text-dark font-bold py-3 px-8 rounded-full text-lg transition duration-300 transform hover:scale-105">
+                                class="bg-transparent border-2 border-secondary text-secondary hover:bg-secondary hover:text-dark font-bold py-3 px-8 rounded-full text-lg transition duration-300 transform hover:scale-105">
                                 View Our Work
                             </button>
                             <button onclick="showPage('contact')"
@@ -1321,24 +1292,7 @@
                 });
             }
 
-            // Hero Slideshow
-            const slides = document.querySelectorAll('.hero-slide');
-            let currentSlide = 0;
 
-            if (slides.length > 0) {
-                setInterval(() => {
-                    // Hide current
-                    slides[currentSlide].classList.remove('opacity-100');
-                    slides[currentSlide].classList.add('opacity-0');
-
-                    // Move to next
-                    currentSlide = (currentSlide + 1) % slides.length;
-
-                    // Show next
-                    slides[currentSlide].classList.remove('opacity-0');
-                    slides[currentSlide].classList.add('opacity-100');
-                }, 5000);
-            }
 
             // --- Testimonials Logic ---
             let allTestimonials = [];
