@@ -20,8 +20,14 @@ const createImageKitClient = () => new ImageKit({
     urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 });
 
-// Configure Multer for memory storage (required for cloud uploads)
-const storage = multer.memoryStorage();
+// Configure Multer for disk storage (stable RAM usage)
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'temp-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
 
 const fileFilter = (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp|pdf/;
@@ -37,24 +43,29 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit
+    limits: { fileSize: 50 * 1024 * 1024 }, // Increased to 50MB since it's now RAM-safe
     fileFilter: fileFilter
 });
 
 /**
- * Uploads a file buffer to ImageKit when configured, otherwise stores it locally.
- * @param {Object} file - Multer file object
- * @param {Object} req - Express request, used to build absolute local file URLs
- * @returns {Promise<string>} - The URL of the uploaded image
+ * Uploads a file from disk to ImageKit or moves it to final local storage.
  */
 const uploadToImageKit = async (file, req = null) => {
-    if (!file) return null;
+    if (!file || !file.path) return null;
 
     if (!hasImageKitConfig()) {
+        // Local fallback: Rename the temp file to a permanent name
         const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
         const filename = `goddygraphix-${Date.now()}-${safeName}`;
-        const filePath = path.join(UPLOAD_DIR, filename);
-        fs.writeFileSync(filePath, file.buffer);
+        const finalPath = path.join(UPLOAD_DIR, filename);
+        
+        try {
+            fs.renameSync(file.path, finalPath);
+        } catch (err) {
+            console.error("[UPLOADS] Local rename failed, trying copy:", err);
+            fs.copyFileSync(file.path, finalPath);
+            fs.unlinkSync(file.path);
+        }
 
         const configuredBaseUrl = process.env.PUBLIC_BASE_URL ||
             process.env.BACKEND_URL ||
@@ -62,29 +73,34 @@ const uploadToImageKit = async (file, req = null) => {
         const requestBaseUrl = req ? `${req.protocol}://${req.get('host')}` : '';
         const baseUrl = (configuredBaseUrl || requestBaseUrl).replace(/\/$/, '');
 
-        if (!baseUrl) {
-            return `/uploads/${filename}`;
-        }
-
-        console.log(`[UPLOADS] Saved locally: /uploads/${filename}`);
-        return `${baseUrl}/uploads/${filename}`;
+        return baseUrl ? `${baseUrl}/uploads/${filename}` : `/uploads/${filename}`;
     }
 
     try {
         const imagekit = createImageKitClient();
         const fileName = `goddygraphix-${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-        console.log(`[IMAGEKIT] Uploading file: ${file.originalname} (${file.size} bytes)`);
+        console.log(`[IMAGEKIT] Uploading file from disk: ${file.originalname} (${file.size} bytes)`);
         
-        // v7 SDK: file can be a buffer directly
+        // Upload using a ReadStream (Hardened: very low RAM usage)
         const response = await imagekit.files.upload({
-            file: file.buffer,
+            file: fs.createReadStream(file.path),
             fileName: fileName,
             folder: "/goddygraphix_uploads"
         });
         
-        console.log("[IMAGEKIT] Upload successful:", response.url);
+        // Cleanup: Delete the temp file after successful upload
+        try {
+            fs.unlinkSync(file.path);
+        } catch (e) {
+            console.warn("[IMAGEKIT] Cleanup warning:", e.message);
+        }
+
         return response.url;
     } catch (error) {
+        // Cleanup even on failure
+        if (file.path && fs.existsSync(file.path)) {
+            try { fs.unlinkSync(file.path); } catch (e) {}
+        }
         console.error("[IMAGEKIT] Upload Error:", error.message || error);
         throw new Error(`ImageKit Upload Failed: ${error.message || 'Unknown error'}`);
     }
