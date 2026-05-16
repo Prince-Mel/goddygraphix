@@ -873,11 +873,15 @@ app.post('/api/testimonials', upload.single('project_file'), contactLimiter, asy
     }
 });
 
-app.put('/api/testimonials/:id', requireAdmin, upload.single('project_file'), async (req, res, next) => {
+app.put('/api/testimonials/:id', requireAdmin, upload.single('project_file'), async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = Number.parseInt(req.params.id, 10);
         const { name, message, service, approved, visible } = req.body;
-        
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ error: 'Invalid testimonial id' });
+        }
+
         if (!name || !message) {
             return res.status(400).json({ error: 'Name and message are required' });
         }
@@ -894,11 +898,15 @@ app.put('/api/testimonials/:id', requireAdmin, upload.single('project_file'), as
         query += " WHERE id = ?";
         params.push(id);
 
-        await pool.query(query, params);
-        res.json({ success: true });
+        const [result] = await pool.query(query, params);
+        if (!result.affectedRows) {
+            return res.status(404).json({ error: 'Testimonial not found' });
+        }
+
+        res.json({ success: true, message: 'Testimonial updated successfully.' });
     } catch (err) {
         console.error("[TESTIMONIAL EDIT ERROR]:", err);
-        next(err);
+        res.status(500).json({ error: err.message || 'Failed to update testimonial' });
     }
 });
 
@@ -915,7 +923,11 @@ app.delete('/api/testimonials/:id', requireAdmin, async (req, res) => {
 
 app.patch('/api/testimonials/:id', requireAdmin, async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = Number.parseInt(req.params.id, 10);
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ error: 'Invalid testimonial id' });
+        }
+
         const updates = [];
         const params = [];
 

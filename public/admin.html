@@ -1798,16 +1798,23 @@
             document.getElementById('adminTestimonyEditName').value = decodeURIComponent(encodedName);
             document.getElementById('adminTestimonyEditService').value = decodeURIComponent(encodedService);
             document.getElementById('adminTestimonyEditMessage').value = decodeURIComponent(encodedMessage);
+            document.getElementById('adminTestimonyEditFile').value = '';
             document.getElementById('adminTestimonyEditModal').classList.remove('hidden');
         }
 
         function closeAdminTestimonyEditModal() {
             document.getElementById('adminTestimonyEditModal').classList.add('hidden');
+            document.getElementById('adminTestimonyEditFile').value = '';
             adminEditTestimonyId = null;
         }
 
         document.getElementById('adminTestimonyEditForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!adminEditTestimonyId) {
+                showAppAlert('No testimony selected for edit.');
+                return;
+            }
+
             const name = document.getElementById('adminTestimonyEditName').value;
             const service = document.getElementById('adminTestimonyEditService').value;
             const message = document.getElementById('adminTestimonyEditMessage').value;
@@ -1826,16 +1833,20 @@
 
             try {
                 const res = await fetch(API_URL + `/api/testimonials/${adminEditTestimonyId}`, { method: 'PUT', credentials: 'include', body: formData });
-                const data = await res.json();
-                if (data.success) {
+                const contentType = res.headers.get('content-type') || '';
+                const data = contentType.includes('application/json')
+                    ? await res.json()
+                    : { error: (await res.text()) || `Unexpected response (HTTP ${res.status})` };
+
+                if (res.ok && data.success) {
                     closeAdminTestimonyEditModal();
                     loadAdminTestimonials();
                 } else {
-                    showAppAlert('Failed to save: ' + (data.error || 'Unknown error'));
+                    showAppAlert('Failed to save: ' + (data.error || `HTTP ${res.status}`));
                 }
             } catch (err) { 
                 console.error(err); 
-                showAppAlert('Connection error'); 
+                showAppAlert('Connection error: ' + (err.message || 'Unable to reach server'));
             } finally {
                 btn.innerHTML = 'Save Changes';
                 btn.disabled = false;
